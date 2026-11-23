@@ -296,17 +296,21 @@
                     </div>
 
                     <!-- 천장(Pity) 시스템 UI -->
-                    <div class="bg-slate-950/85 backdrop-blur-md border border-amber-500/40 rounded-2xl p-3 sm:p-3.5 min-w-[175px] shadow-lg">
+                    <div class="bg-slate-950/85 backdrop-blur-md border border-amber-500/40 rounded-2xl p-3 sm:p-3.5 min-w-[215px] shadow-lg">
                         <div class="flex items-center justify-between text-xs text-slate-300 mb-1">
                             <span class="flex items-center gap-1 font-medium">
                                 <i class="fa-solid fa-crown text-amber-400"></i> SSR 확정 천장
                             </span>
-                            <span id="pity-text" class="font-bold text-amber-400">80회 남음</span>
+                            <span id="pity-text" class="font-bold text-amber-400">90회 남음 (0/90)</span>
                         </div>
                         <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                             <div id="pity-bar" class="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-orange-400 transition-all duration-300" style="width: 0%;"></div>
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1 text-right">누적 소환: <span id="total-pulls-text" class="text-slate-200 font-semibold">0</span>회</p>
+                        <div class="flex items-center justify-between text-[11px] mt-1.5">
+                            <span class="text-slate-400">다음 SSR 확률:</span>
+                            <span id="current-ssr-rate-badge" class="font-extrabold text-amber-300">0.600%</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-0.5 text-right">누적 소환: <span id="total-pulls-text" class="text-slate-200 font-semibold">0</span>회</p>
                     </div>
                 </div>
 
@@ -490,9 +494,13 @@
                     <i class="fa-solid fa-eye"></i>
                     <span>모두 뒤집기</span>
                 </button>
+                <button id="result-resummon-10-btn" onclick="resummonTenFromResult()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-black text-sm shadow-lg shadow-purple-500/30 border border-purple-300/40 transition transform active:scale-95 flex items-center gap-2 holo-shimmer">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span id="result-resummon-10-label">10회 다시 소환 (성정석 1,600개)</span>
+                </button>
                 <button id="close-result-btn" onclick="closeSummonOverlay()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm shadow-lg transition flex items-center gap-2">
                     <i class="fa-solid fa-check"></i>
-                    <span>확인 완료</span>
+                    <span>확인</span>
                 </button>
             </div>
         </div>
@@ -580,35 +588,46 @@
             <p class="text-xs text-slate-400 mb-4">모든 확률은 독립 시행으로 적용되며 천장 규칙이 우선 보장됩니다.</p>
 
             <div class="overflow-y-auto pr-1 space-y-4 text-xs">
+                <!-- 현재 적용 중인 실시간 확률 요약 -->
+                <div class="bg-gradient-to-r from-amber-950/70 via-slate-950 to-purple-950/70 border border-amber-400/50 rounded-xl p-3 flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] text-amber-200/80">현재 내 누적 스택 (<span id="modal-pity-stack" class="font-bold text-white">0</span> / 90회)</div>
+                        <div class="font-bold text-sm text-white mt-0.5">다음 1회 소환 시 적용 SSR 확률</div>
+                    </div>
+                    <div id="modal-live-ssr-rate" class="text-xl font-black text-amber-400 tabular-nums">0.600%</div>
+                </div>
+
                 <!-- 기본 등급별 확률 요약 -->
                 <div class="grid grid-cols-3 gap-2 text-center">
                     <div class="bg-amber-500/10 border border-amber-500/40 rounded-xl p-2.5">
-                        <div class="font-black text-amber-400 text-sm">SSR</div>
-                        <div class="font-bold text-white text-base mt-0.5">3.00%</div>
-                        <div class="text-[10px] text-amber-200/70">개별 0.75%</div>
+                        <div class="font-black text-amber-400 text-sm">SSR (5★)</div>
+                        <div class="font-bold text-white text-base mt-0.5">0.600%</div>
+                        <div class="text-[10px] text-amber-200/70">74회~ 소프트 천장</div>
                     </div>
                     <div class="bg-purple-500/10 border border-purple-500/40 rounded-xl p-2.5">
-                        <div class="font-black text-purple-400 text-sm">SR</div>
-                        <div class="font-bold text-white text-base mt-0.5">15.00%</div>
-                        <div class="text-[10px] text-purple-200/70">개별 2.50%</div>
+                        <div class="font-black text-purple-400 text-sm">SR (4★)</div>
+                        <div class="font-bold text-white text-base mt-0.5">5.100%</div>
+                        <div class="text-[10px] text-purple-200/70">10회 이내 확정 보장</div>
                     </div>
                     <div class="bg-sky-500/10 border border-sky-500/40 rounded-xl p-2.5">
-                        <div class="font-black text-sky-400 text-sm">R</div>
-                        <div class="font-bold text-white text-base mt-0.5">82.00%</div>
-                        <div class="text-[10px] text-sky-200/70">개별 13.67%</div>
+                        <div class="font-black text-sky-400 text-sm">R (3★)</div>
+                        <div class="font-bold text-white text-base mt-0.5">94.300%</div>
+                        <div class="text-[10px] text-sky-200/70">개별 15.72%</div>
                     </div>
                 </div>
 
                 <!-- 특수 보장 규칙 -->
                 <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 space-y-1.5 text-slate-300">
-                    <div class="font-bold text-indigo-300"><i class="fa-solid fa-shield-halved mr-1"></i> 확정 보장 시스템</div>
-                    <p>• <strong class="text-amber-300">80회 천장 시스템:</strong> 79회 연속 SSR 미획득 시, 80회째 소환에서 반드시 SSR 영웅 1명이 확정 등장합니다. (SSR 획득 시 카운트 초기화)</p>
-                    <p>• <strong class="text-purple-300">10회 연속 소환 보정:</strong> 10회 연속 소환 시 10번째 슬롯에서 SR 이상(SR 97% / SSR 3%) 영웅이 최소 1명 확정 등장합니다.</p>
+                    <div class="font-bold text-indigo-300"><i class="fa-solid fa-shield-halved mr-1"></i> 90천장 & 소프트 천장 확률 규칙</div>
+                    <p>• <strong class="text-amber-300">1~73회 기본 구간:</strong> SSR 기본 등장 확률 <strong class="text-white">0.600%</strong>가 적용됩니다.</p>
+                    <p>• <strong class="text-orange-300">74~89회 소프트 천장(확률업):</strong> 74회차부터 매 회 <strong class="text-white">+6.0%</strong>씩 확률이 급상승합니다. (74회 6.600% → 75회 12.600% → ... → 89회 96.600%)</p>
+                    <p>• <strong class="text-amber-400">90회 하드 천장:</strong> 89회 연속 미획득 시, <strong class="text-white">90회째 100.000%</strong> 확정으로 SSR 영웅을 획득하며 천장 스택이 초기화됩니다.</p>
+                    <p>• <strong class="text-purple-300">SR 10회 천장 보장:</strong> 9회 연속 SR 이상 미획득 시 10회째 반드시 SR 이상 영웅이 등장합니다.</p>
                 </div>
 
                 <!-- 전체 캐릭터 개별 확률표 -->
                 <div>
-                    <div class="font-bold text-slate-200 mb-2">개별 영웅 등장 확률표</div>
+                    <div class="font-bold text-slate-200 mb-2">개별 영웅 기본 등장 확률표 (1~73회 기준)</div>
                     <div id="rate-table-list" class="divide-y divide-slate-800 border border-slate-800 rounded-xl overflow-hidden">
                         <!-- JS로 자동 생성 -->
                     </div>
@@ -684,7 +703,11 @@
 
         const SINGLE_COST = 160;
         const MULTI_COST = 1600;
-        const PITY_MAX = 80;
+        const PITY_MAX = 90;
+        const SOFT_PITY_START = 74; // 74회차(현재 스택 73)부터 확률업 시작
+        const BASE_SSR_RATE = 0.6;  // 0.600%
+        const SOFT_PITY_STEP = 6.0; // 매 회 +6.0% 상승
+        const BASE_SR_RATE = 5.1;   // 5.100%
 
         /**
          * 2. 게임 상태 관리 (LocalStorage 연동)
@@ -692,7 +715,8 @@
         let gameState = {
             gems: 3200,
             tickets: 10,
-            pity: 0,           // 현재 천장 스택 (0 ~ 79)
+            pity: 0,           // 현재 SSR 천장 스택 (0 ~ 89)
+            srPity: 0,         // 현재 SR 이상 천장 스택 (0 ~ 9)
             totalPulls: 0,     // 누적 총 뽑기 횟수
             inventory: {},     // { heroId: count }
             muted: false
@@ -724,7 +748,23 @@
         }
 
         /**
-         * 3. Web Audio API 사운드 합성기 (외부 음원 없이 깔끔한 효과음 생성)
+         * 현재 천장 스택 기준 다음 1회 소환의 SSR 확률(%) 계산
+         */
+        function getCurrentSSRRate(currentPityStack = gameState.pity) {
+            const nextPullNumber = currentPityStack + 1; // 이번이 몇 번째 뽑기인지 (1 ~ 90)
+            if (nextPullNumber >= PITY_MAX) {
+                return 100.0;
+            }
+            if (nextPullNumber >= SOFT_PITY_START) {
+                // 74회차: 0.6 + (74 - 73) * 6.0 = 6.6%
+                const boosted = BASE_SSR_RATE + (nextPullNumber - (SOFT_PITY_START - 1)) * SOFT_PITY_STEP;
+                return Math.min(100.0, boosted);
+            }
+            return BASE_SSR_RATE;
+        }
+
+        /**
+         * 3. Web Audio API 기반 사운드 엔진 (외부 파일 없이 효과음 합성)
          */
         const SoundEngine = {
             ctx: null,
@@ -737,55 +777,52 @@
                     this.ctx.resume();
                 }
             },
-            playTone(freq, type = 'sine', duration = 0.2, volume = 0.15, delay = 0) {
+            playTone(freq, type, duration, vol = 0.15, delay = 0) {
                 if (gameState.muted) return;
                 this.init();
                 if (!this.ctx) return;
 
-                const now = this.ctx.currentTime + delay;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-
                 osc.type = type;
-                osc.frequency.setValueAtTime(freq, now);
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime + delay);
 
-                gain.gain.setValueAtTime(0.001, now);
-                gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + duration);
 
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
 
-                osc.start(now);
-                osc.stop(now + duration + 0.05);
+                osc.start(this.ctx.currentTime + delay);
+                osc.stop(this.ctx.currentTime + delay + duration);
             },
             click() {
-                this.playTone(680, 'sine', 0.08, 0.1);
-            },
-            summonStart() {
-                // 상승하는 아르페지오
-                const notes = [330, 440, 554.37, 659.25, 880];
-                notes.forEach((n, idx) => {
-                    this.playTone(n, 'triangle', 0.35, 0.12, idx * 0.09);
-                });
-            },
-            revealR() {
-                this.playTone(523.25, 'sine', 0.25, 0.12);
-            },
-            revealSR() {
-                this.playTone(587.33, 'triangle', 0.3, 0.15, 0);
-                this.playTone(880, 'triangle', 0.45, 0.15, 0.08);
-            },
-            revealSSR() {
-                // 화려한 금빛 팡파레 화음
-                const chord = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-                chord.forEach((freq, idx) => {
-                    this.playTone(freq, 'triangle', 0.85, 0.16, idx * 0.06);
-                });
+                this.playTone(620, 'sine', 0.08, 0.08);
             },
             coin() {
                 this.playTone(987.77, 'sine', 0.12, 0.12, 0);
-                this.playTone(1318.51, 'sine', 0.25, 0.12, 0.07);
+                this.playTone(1318.51, 'sine', 0.25, 0.12, 0.08);
+            },
+            summonStart() {
+                // 상승하는 아르페지오
+                const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+                notes.forEach((n, idx) => {
+                    this.playTone(n, 'triangle', 0.35, 0.1, idx * 0.08);
+                });
+            },
+            revealR() {
+                this.playTone(440, 'sine', 0.2, 0.1);
+            },
+            revealSR() {
+                this.playTone(523.25, 'triangle', 0.25, 0.14, 0);
+                this.playTone(659.25, 'triangle', 0.35, 0.14, 0.1);
+            },
+            revealSSR() {
+                // 화려한 팡파레 화음
+                const chord = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                chord.forEach((n, idx) => {
+                    this.playTone(n, 'triangle', 0.75, 0.16, idx * 0.06);
+                });
             }
         };
 
@@ -794,11 +831,11 @@
             saveGameState();
             updateSoundIcon();
             if (!gameState.muted) SoundEngine.click();
-            showToast(gameState.muted ? '효과음이 음소거되었습니다.' : '효과음이 활성화되었습니다.');
         }
 
         function updateSoundIcon() {
             const icon = document.getElementById('sound-icon');
+            if (!icon) return;
             if (gameState.muted) {
                 icon.className = 'fa-solid fa-volume-xmark text-xs sm:text-sm text-rose-400';
             } else {
@@ -813,11 +850,22 @@
             document.getElementById('gem-count').textContent = gameState.gems.toLocaleString();
             document.getElementById('ticket-count').textContent = gameState.tickets.toLocaleString();
 
-            // 천장 UI 업데이트
+            // 천장 UI 및 실시간 SSR 확률 업데이트
             const remainPity = PITY_MAX - gameState.pity;
-            document.getElementById('pity-text').textContent = `${remainPity}회 남음`;
+            const liveSSRRate = getCurrentSSRRate(gameState.pity);
+            const isSoftPityActive = (gameState.pity + 1) >= SOFT_PITY_START;
+
+            document.getElementById('pity-text').textContent = `${remainPity}회 남음 (${gameState.pity}/${PITY_MAX})`;
             document.getElementById('pity-bar').style.width = `${(gameState.pity / PITY_MAX) * 100}%`;
             document.getElementById('total-pulls-text').textContent = gameState.totalPulls.toLocaleString();
+
+            const liveRateBadge = document.getElementById('current-ssr-rate-badge');
+            if (liveRateBadge) {
+                liveRateBadge.textContent = `${liveSSRRate.toFixed(3)}%${isSoftPityActive ? ' (확률UP!)' : ''}`;
+                liveRateBadge.className = isSoftPityActive
+                    ? 'font-black text-orange-400 animate-pulse'
+                    : 'font-extrabold text-amber-300';
+            }
 
             // 1회 / 10회 비용 버튼 표시 (티켓 우선 소모)
             const cost1El = document.getElementById('cost-1-display');
@@ -828,10 +876,13 @@
             }
 
             const cost10El = document.getElementById('cost-10-display');
+            const resummon10Label = document.getElementById('result-resummon-10-label');
             if (gameState.tickets >= 10) {
                 cost10El.innerHTML = `<i class="fa-solid fa-ticket text-cyan-400"></i><span>10</span>`;
+                if (resummon10Label) resummon10Label.textContent = '10회 다시 소환 (티켓 10장)';
             } else {
                 cost10El.innerHTML = `<i class="fa-solid fa-gem text-amber-400"></i><span>${MULTI_COST.toLocaleString()}</span>`;
+                if (resummon10Label) resummon10Label.textContent = `10회 다시 소환 (성정석 ${MULTI_COST.toLocaleString()}개)`;
             }
 
             // 도감 수집률 계산
@@ -867,32 +918,33 @@
         }
 
         /**
-         * 5. 핵심 가챠 확률 및 천장 알고리즘
+         * 5. 핵심 가챠 확률 및 90천장 + 소프트 천장 알고리즘
          */
-        function rollSingleHero(forceMinSR = false) {
+        function rollSingleHero() {
+            const currentSSRRate = getCurrentSSRRate(gameState.pity);
+
             gameState.pity += 1;
+            gameState.srPity += 1;
             gameState.totalPulls += 1;
 
             let chosenRarity = 'R';
+            const rand = Math.random() * 100; // 0.000 ~ 99.999...
 
-            // 80회 천장 도달 시 SSR 확정
-            if (gameState.pity >= PITY_MAX) {
+            if (rand < currentSSRRate) {
                 chosenRarity = 'SSR';
+            } else if (rand < currentSSRRate + BASE_SR_RATE || gameState.srPity >= 10) {
+                // 기본 SR 5.1% 또는 10회째 SR 이상 천장 보장
+                chosenRarity = 'SR';
             } else {
-                const rand = Math.random() * 100; // 0 ~ 100
-                if (rand < 3.0) {
-                    chosenRarity = 'SSR';
-                } else if (rand < 18.0 || forceMinSR) {
-                    // 3% ~ 18% (15% 확률) 또는 10연차 보정 시 최소 SR 이상
-                    chosenRarity = 'SR';
-                } else {
-                    chosenRarity = 'R';
-                }
+                chosenRarity = 'R';
             }
 
-            // SSR 획득 시 천장 스택 초기화
+            // 등급별 천장 스택 초기화
             if (chosenRarity === 'SSR') {
                 gameState.pity = 0;
+                gameState.srPity = 0;
+            } else if (chosenRarity === 'SR') {
+                gameState.srPity = 0;
             }
 
             const candidates = HERO_POOL.filter(h => h.rarity === chosenRarity);
@@ -930,15 +982,9 @@
 
             // 뽑기 실행
             const results = [];
-            let hasSRorHigher = false;
 
             for (let i = 0; i < count; i++) {
-                // 10회 뽑기의 마지막(10번째) 슬롯인데 아직 SR 이상이 안 나왔다면 강제 보정
-                const isLastOfMulti = (count === 10 && i === 9 && !hasSRorHigher);
-                const hero = rollSingleHero(isLastOfMulti);
-                if (hero.rarity === 'SSR' || hero.rarity === 'SR') {
-                    hasSRorHigher = true;
-                }
+                const hero = rollSingleHero();
 
                 // 신규 획득 여부 판별 후 인벤토리 반영
                 const prevCount = gameState.inventory[hero.id] || 0;
@@ -957,6 +1003,14 @@
 
             // 화려한 소환 연출 시작
             startSummonAnimation(results);
+        }
+
+        /**
+         * 결과 화면에서 오버레이를 닫지 않고 바로 10회 연속 뽑기 재실행
+         */
+        function resummonTenFromResult() {
+            isAnimating = false;
+            performGacha(10);
         }
 
         /**
@@ -1034,6 +1088,7 @@
         }
 
         function showResultCards() {
+            isAnimating = false;
             const animStage = document.getElementById('summon-anim-stage');
             const resultStage = document.getElementById('summon-result-stage');
             const grid = document.getElementById('result-cards-grid');
@@ -1042,10 +1097,13 @@
             resultStage.classList.remove('hidden');
 
             // 1회 뽑기 vs 10회 뽑기 그리드 열 수 조정
+            const resummonBtn = document.getElementById('result-resummon-10-btn');
             if (currentPullResults.length === 1) {
                 grid.className = 'w-full flex justify-center py-4';
+                if (resummonBtn) resummonBtn.classList.add('hidden');
             } else {
                 grid.className = 'w-full grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 justify-items-center';
+                if (resummonBtn) resummonBtn.classList.remove('hidden');
             }
 
             grid.innerHTML = '';
@@ -1321,6 +1379,7 @@
                 gems: 3200,
                 tickets: 10,
                 pity: 0,
+                srPity: 0,
                 totalPulls: 0,
                 inventory: {},
                 muted: gameState.muted
@@ -1332,12 +1391,20 @@
         }
 
         function renderRateTable() {
+            const stackEl = document.getElementById('modal-pity-stack');
+            const liveRateEl = document.getElementById('modal-live-ssr-rate');
+            if (stackEl && liveRateEl) {
+                const liveRate = getCurrentSSRRate(gameState.pity);
+                stackEl.textContent = gameState.pity;
+                liveRateEl.textContent = `${liveRate.toFixed(3)}%`;
+            }
+
             const list = document.getElementById('rate-table-list');
             list.innerHTML = HERO_POOL.map(hero => {
-                let rate = '13.67%';
+                let rate = '15.717%';
                 let color = 'text-sky-400';
-                if (hero.rarity === 'SSR') { rate = '0.75%'; color = 'text-amber-400 font-bold'; }
-                else if (hero.rarity === 'SR') { rate = '2.50%'; color = 'text-purple-400 font-semibold'; }
+                if (hero.rarity === 'SSR') { rate = '0.150%'; color = 'text-amber-400 font-bold'; }
+                else if (hero.rarity === 'SR') { rate = '0.850%'; color = 'text-purple-400 font-semibold'; }
 
                 return `
                     <div class="flex items-center justify-between px-3 py-2 bg-slate-950/60">
