@@ -236,7 +236,7 @@
 
     <!-- 내비게이션 탭 (소환 / 도감) -->
     <nav class="max-w-6xl w-full mx-auto px-4 pt-4">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
             <div class="flex gap-2">
                 <button id="tab-summon" onclick="switchTab('summon')" class="px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition">
                     <i class="fa-solid fa-wand-sparkles"></i>
@@ -249,8 +249,12 @@
                 </button>
             </div>
 
-            <!-- 확률 정보 & 데이터 초기화 버튼 -->
+            <!-- 일러스트 등록, 확률 정보 & 데이터 초기화 버튼 -->
             <div class="flex items-center gap-2">
+                <button onclick="openIllustModal()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-600/80 to-purple-600/80 hover:from-pink-500 hover:to-purple-500 border border-pink-400/50 text-xs font-bold text-white flex items-center gap-1.5 shadow transition">
+                    <i class="fa-solid fa-image text-pink-200"></i>
+                    <span>일러스트 등록</span>
+                </button>
                 <button onclick="openRateModal()" class="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
                     <i class="fa-solid fa-circle-info text-indigo-400"></i>
                     <span>확률 정보</span>
@@ -630,6 +634,57 @@
         </div>
     </div>
 
+    <!-- ===================================================================== -->
+    <!-- 모달 5: 캐릭터 커스텀 일러스트 업로더 (파일 첨부 & URL 등록) -->
+    <!-- ===================================================================== -->
+    <div id="illust-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-pink-500/40 rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative max-h-[88vh] flex flex-col">
+            <button onclick="closeModal('illust-modal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-2.5 mb-2">
+                <div class="w-10 h-10 rounded-2xl bg-pink-500/20 border border-pink-400/40 flex items-center justify-center text-pink-300">
+                    <i class="fa-solid fa-images text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-extrabold text-white">캐릭터 커스텀 일러스트 등록</h3>
+                    <p class="text-xs text-slate-400">내 기기의 이미지 파일을 선택하거나 이미지 URL을 붙여넣어 즉시 적용하세요.</p>
+                </div>
+            </div>
+
+            <!-- 숨겨진 공통 파일 입력기 -->
+            <input type="file" id="hero-illust-file-input" accept="image/*" class="hidden" onchange="handleIllustFileSelect(event)" />
+
+            <!-- 깃허브 업로드 이미지 자동 연결 안내 및 설정 바 -->
+            <div class="bg-gradient-to-r from-indigo-950/90 to-slate-950 border border-indigo-500/40 rounded-2xl p-3 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="text-xs">
+                    <div class="font-bold text-indigo-300 flex items-center gap-1.5">
+                        <i class="fa-brands fa-github text-sm text-white"></i>
+                        <span>깃허브(GitHub) 업로드 파일 자동 탐색 활성화됨</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">
+                        저장소에 올린 원본 파일명(<code>watermarked_img_...jpg</code>) 또는 영웅 ID(<code>lim_1.jpg</code> 등)를 자동으로 찾아 표시합니다.
+                    </p>
+                </div>
+                <button onclick="recheckGithubImages()" class="shrink-0 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span>깃허브 이미지 다시 찾기</span>
+                </button>
+            </div>
+
+            <!-- 영웅 리스트 스크롤 영역 -->
+            <div id="illust-manager-list" class="overflow-y-auto pr-1 space-y-2.5 mt-1 flex-1">
+                <!-- JS로 동적 렌더링 -->
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                <span>※ 깃허브 파일 또는 직접 등록한 일러스트가 자동 적용됩니다.</span>
+                <button onclick="closeModal('illust-modal')" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition">완료</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 토스트 메시지 알림 영역 -->
     <div id="toast-container" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4"></div>
 
@@ -639,52 +694,99 @@
     <script>
         /**
          * 1. 영웅 데이터베이스 정의 (총 24종: 한정 SSR 6종, 상시 SSR 6종, SR 6종, R 6종)
+         * 깃허브 저장소 루트 또는 images/ 폴더에 업로드된 파일을 자동 탐색할 수 있도록 후보 경로(imageCandidates) 등록
          */
         const HERO_POOL = [
             // 한정 픽업 SSR 등급 (6종 - 각자 전용 한정 기원 배너 보유)
-            { id: 'lim_1', bannerName: '여명의 성좌', bannerTheme: 'from-amber-400 via-yellow-400 to-orange-400', name: '성녀 셀레스티아', title: '여명의 빛을 품은 자', rarity: 'SSR', poolType: 'LIMITED', element: '빛', icon: '👑', desc: '천상의 성좌를 다스리는 대성녀. 아군 전체에 불멸의 축복과 찬란한 광휘를 내립니다.' },
-            { id: 'lim_2', bannerName: '업화의 용왕', bannerTheme: 'from-rose-400 via-red-500 to-orange-400', name: '적룡제 이그니스', title: '태초의 불꽃 군주', rarity: 'SSR', poolType: 'LIMITED', element: '화염', icon: '🐉', desc: '심연의 화산에서 깨어난 고대 용족의 왕. 모든 것을 재로 만드는 업화의 숨결을 내뿜습니다.' },
-            { id: 'lim_3', bannerName: '은하의 경계', bannerTheme: 'from-purple-400 via-fuchsia-400 to-indigo-400', name: '시공의 마녀 녹스', title: '은하의 경계 관측자', rarity: 'SSR', poolType: 'LIMITED', element: '공허', icon: '🌌', desc: '차원의 틈새를 넘나드는 대마도사. 적의 시간을 정지시키고 허공의 유성을 떨어뜨립니다.' },
-            { id: 'lim_4', bannerName: '천둥의 선율', bannerTheme: 'from-violet-400 via-indigo-400 to-cyan-400', name: '뇌신 발키리 프레이야', title: '천둥을 가르는 창', rarity: 'SSR', poolType: 'LIMITED', element: '번개', icon: '⚡', desc: '폭풍우의 전장을 지배하는 전장의 여신. 빛보다 빠른 뇌격으로 적진을 꿰뚫습니다.' },
-            { id: 'lim_5', bannerName: '영원한 설화', bannerTheme: 'from-cyan-300 via-sky-400 to-blue-400', name: '빙해의 여제 아스트리드', title: '만년빙을 다스리는 여왕', rarity: 'SSR', poolType: 'LIMITED', element: '얼음', icon: '❄️', desc: '북극의 영구동토를 지배하는 냉혹하고 아름다운 여제. 대지 전체를 순식간에 얼려버립니다.' },
-            { id: 'lim_6', bannerName: '비취빛 바람', bannerTheme: 'from-emerald-300 via-teal-400 to-cyan-400', name: '천풍의 검성 카제하', title: '구름을 베는 방랑객', rarity: 'SSR', poolType: 'LIMITED', element: '바람', icon: '🍃', desc: '단풍잎과 함께 바람을 타고 유랑하는 천재 검사. 보이지 않는 참격으로 폭풍을 일으킵니다.' },
+            {
+                id: 'lim_1', bannerName: '여명의 성좌', bannerTheme: 'from-amber-400 via-yellow-400 to-orange-400',
+                name: '성녀 셀레스티아', title: '여명의 빛을 품은 자', rarity: 'SSR', poolType: 'LIMITED', element: '빛', icon: '👑',
+                image: './watermarked_img_16667217487223805325.jpg',
+                imageCandidates: [
+                    './watermarked_img_16667217487223805325.jpg', './watermarked_img_16667217487223805325.png',
+                    './images/watermarked_img_16667217487223805325.jpg', './celestia.jpg', './celestia.png', './lim_1.jpg', './lim_1.png'
+                ],
+                desc: '천상의 성좌를 다스리는 대성녀. 아군 전체에 불멸의 축복과 찬란한 광휘를 내립니다.'
+            },
+            {
+                id: 'lim_2', bannerName: '업화의 용왕', bannerTheme: 'from-rose-400 via-red-500 to-orange-400',
+                name: '적룡제 이그니스', title: '태초의 불꽃 군주', rarity: 'SSR', poolType: 'LIMITED', element: '화염', icon: '🐉',
+                imageCandidates: ['./ignis.jpg', './ignis.png', './lim_2.jpg', './lim_2.png', './images/lim_2.jpg'],
+                desc: '심연의 화산에서 깨어난 고대 용족의 왕. 모든 것을 재로 만드는 업화의 숨결을 내뿜습니다.'
+            },
+            {
+                id: 'lim_3', bannerName: '은하의 경계', bannerTheme: 'from-purple-400 via-fuchsia-400 to-indigo-400',
+                name: '시공의 마녀 녹스', title: '은하의 경계 관측자', rarity: 'SSR', poolType: 'LIMITED', element: '공허', icon: '🌌',
+                image: './watermarked_img_12408929736614507261.jpg',
+                imageCandidates: [
+                    './watermarked_img_12408929736614507261.jpg', './watermarked_img_12408929736614507261.png',
+                    './images/watermarked_img_12408929736614507261.jpg', './nox.jpg', './nox.png', './lim_3.jpg', './lim_3.png'
+                ],
+                desc: '차원의 틈새를 넘나드는 대마도사. 적의 시간을 정지시키고 허공의 유성을 떨어뜨립니다.'
+            },
+            {
+                id: 'lim_4', bannerName: '천둥의 선율', bannerTheme: 'from-violet-400 via-indigo-400 to-cyan-400',
+                name: '뇌신 발키리 프레이야', title: '천둥을 가르는 창', rarity: 'SSR', poolType: 'LIMITED', element: '번개', icon: '⚡',
+                image: './watermarked_img_13188285929166160961.jpg',
+                imageCandidates: [
+                    './watermarked_img_13188285929166160961.jpg', './watermarked_img_13188285929166160961.png',
+                    './images/watermarked_img_13188285929166160961.jpg', './freya.jpg', './freya.png', './lim_4.jpg', './lim_4.png'
+                ],
+                desc: '폭풍우의 전장을 지배하는 전장의 여신. 빛보다 빠른 뇌격으로 적진을 꿰뚫습니다.'
+            },
+            {
+                id: 'lim_5', bannerName: '영원한 설화', bannerTheme: 'from-cyan-300 via-sky-400 to-blue-400',
+                name: '빙해의 여제 아스트리드', title: '만년빙을 다스리는 여왕', rarity: 'SSR', poolType: 'LIMITED', element: '얼음', icon: '❄️',
+                image: './watermarked_img_16770943392179133562.jpg',
+                imageCandidates: [
+                    './watermarked_img_16770943392179133562.jpg', './watermarked_img_16770943392179133562.png',
+                    './images/watermarked_img_16770943392179133562.jpg', './astrid.jpg', './astrid.png', './lim_5.jpg', './lim_5.png'
+                ],
+                desc: '북극의 영구동토를 지배하는 냉혹하고 아름다운 여제. 대지 전체를 순식간에 얼려버립니다.'
+            },
+            {
+                id: 'lim_6', bannerName: '비취빛 바람', bannerTheme: 'from-emerald-300 via-teal-400 to-cyan-400',
+                name: '천풍의 검성 카제하', title: '구름을 베는 방랑객', rarity: 'SSR', poolType: 'LIMITED', element: '바람', icon: '🍃',
+                imageCandidates: ['./kazeha.jpg', './kazeha.png', './lim_6.jpg', './lim_6.png', './images/lim_6.jpg'],
+                desc: '단풍잎과 함께 바람을 타고 유랑하는 천재 검사. 보이지 않는 참격으로 폭풍을 일으킵니다.'
+            },
+            // 상시 SSR 등급 (6종 - 상시 배너 및 한정 배너 50:50 픽뚫 풀)
+            { id: 'std_1', name: '창공의 대장군 레온', title: '제국의 황금 사자', rarity: 'SSR', poolType: 'STANDARD', element: '빛', icon: '🦁', desc: '제국 기사단을 통솔하는 불패의 총사령관. 거대한 성검으로 전선을 돌파합니다.' },
+            { id: 'std_2', name: '심연의 사신 카론', title: '황천의 인도자', rarity: 'SSR', poolType: 'STANDARD', element: '어둠', icon: '💀', desc: '죽음의 강을 건너는 영혼의 수호자. 거대한 낫으로 적의 생명을 거두어 들입니다.' },
+            { id: 'std_3', name: '대자연의 현자 실비아', title: '세계수의 수호령', rarity: 'SSR', poolType: 'STANDARD', element: '풀', icon: '🌿', desc: '태고의 숲과 교감하는 엘프 대현자. 신비로운 생명의 치유술로 아군을 보호합니다.' },
+            { id: 'std_4', name: '심해의 여왕 네레아', title: '파도를 부르는 세이렌', rarity: 'SSR', poolType: 'STANDARD', element: '물', icon: '🔱', desc: '깊은 심해 왕국을 다스리는 여왕. 거대한 해일을 일으켜 전장을 집어삼킵니다.' },
+            { id: 'std_5', name: '기계공작 아르키메데스', title: '태엽장치의 천재', rarity: 'SSR', poolType: 'STANDARD', element: '번개', icon: '⚙️', desc: '고대 마도공학의 정점을 이룬 발명가. 수많은 자율 병기를 소환해 적을 포격합니다.' },
+            { id: 'std_6', name: '붉은 달의 귀족 블라드', title: '밤을 지배하는 백작', rarity: 'SSR', poolType: 'STANDARD', element: '어둠', icon: '🦇', desc: '고고한 혈통을 지닌 밤의 군주. 진홍빛 마법으로 적의 생명력을 흡수합니다.' },
 
-            // 상시 SSR 등급 (6종 - 상시 기원 및 한정 기원 픽뚫 50% 풀)
-            { id: 'std_1', name: '창공의 단장 진', title: '민들레 기사단장', rarity: 'SSR', poolType: 'STANDARD', element: '바람', icon: '🦁', desc: '자유의 도시를 수호하는 기사단장. 온화한 바람으로 아군을 치유하고 적을 밀어냅니다.' },
-            { id: 'std_2', name: '심연의 별점술사 모나', title: '수면을 비추는 운명', rarity: 'SSR', poolType: 'STANDARD', element: '물', icon: '🔮', desc: '별의 궤적을 읽어 미래를 예지하는 천재 점성술사. 환상의 물거울로 적을 속박합니다.' },
-            { id: 'std_3', name: '폭염의 전희 디루크', title: '새벽을 여는 대검', rarity: 'SSR', poolType: 'STANDARD', element: '화염', icon: '🔥', desc: '불사조의 힘을 깃들인 대검을 휘두르는 고독한 귀족. 강렬한 화염 참격으로 전장을 제압합니다.' },
-            { id: 'std_4', name: '자전의 옥형 각청', title: '질뢰쾌우의 집행관', rarity: 'SSR', poolType: 'STANDARD', element: '번개', icon: '🗡️', desc: '번개처럼 빠른 보법으로 전장을 누비는 결단력 넘치는 전략가. 눈부신 뇌광 검무를 펼칩니다.' },
-            { id: 'std_5', name: '불멸의 약사 치치', title: '차가운 영혼의 약초꾼', rarity: 'SSR', poolType: 'STANDARD', element: '얼음', icon: '🎐', desc: '오랜 세월을 살아온 작은 선인 약사. 얼음 부적의 힘으로 쓰러진 동료까지 되살립니다.' },
-            { id: 'std_6', name: '황야의 사냥꾼 타이나리', title: '우림을 지키는 순찰관', rarity: 'SSR', poolType: 'STANDARD', element: '자연', icon: '🏹', desc: '생태계의 균형을 수호하는 박식한 순찰관. 추적 화살비로 표적을 빈틈없이 제압합니다.' },
+            // SR 등급 (6종 - 5.1% 기본, 10회 천장 보장)
+            { id: 'sr_1', name: '백은의 기사 아서', title: '왕국의 수호 기사', rarity: 'SR', poolType: 'COMMON', element: '빛', icon: '🛡️', desc: '강철 같은 신념으로 아군을 지키는 성기사. 견고한 방패로 모든 공격을 막아냅니다.' },
+            { id: 'sr_2', name: '홍련의 무희 카구라', title: '불꽃의 검무가', rarity: 'SR', poolType: 'COMMON', element: '화염', icon: '🔥', desc: '화려한 춤사위 속에 치명적인 화염 검기를 숨긴 동방의 무희입니다.' },
+            { id: 'sr_3', name: '창해의 궁수 세레나', title: '파도를 가르는 시위', rarity: 'SR', poolType: 'COMMON', element: '물', icon: '🏹', desc: '백발백중의 실력을 자랑하는 엘프 명사수. 물의 화살로 적의 급소를 꿰뚫습니다.' },
+            { id: 'sr_4', name: '질풍의 암살자 제로', title: '그림자 추적자', rarity: 'SR', poolType: 'COMMON', element: '바람', icon: '🗡️', desc: '소리 없이 적의 배후를 노리는 암살자. 바람처럼 스쳐 지나가며 치명타를 입힙니다.' },
+            { id: 'sr_5', name: '암흑 주술사 모르가나', title: '저주받은 고서', rarity: 'SR', poolType: 'COMMON', element: '어둠', icon: '🔮', desc: '금지된 흑마법을 연구하는 마녀. 적에게 강력한 약화 저주를 부여합니다.' },
+            { id: 'sr_6', name: '대지의 수호자 브론즈', title: '바위산의 거인', rarity: 'SR', poolType: 'COMMON', element: '대지', icon: '🪨', desc: '거대한 전투 망치를 휘두르는 드워프 전사. 대지를 울려 적들을 기절시킵니다.' },
 
-            // SR 등급 (6종)
-            { id: 'sr_1', name: '은빛 기사 레온', title: '왕국의 수호 방패', rarity: 'SR', poolType: 'COMMON', element: '빛', icon: '🛡️', desc: '백은 기사단의 단장. 강철 같은 신념으로 동료들을 모든 위협으로부터 지켜냅니다.' },
-            { id: 'sr_2', name: '빙결의 무희 세라', title: '만년설의 연꽃', rarity: 'SR', poolType: 'COMMON', element: '얼음', icon: '💠', desc: '얼어붙은 호수 위에서 춤추는 정령술사. 우아한 몸짓으로 전장을 빙하로 뒤덮습니다.' },
-            { id: 'sr_3', name: '그림자 암살자 카인', title: '월하의 단검', rarity: 'SR', poolType: 'COMMON', element: '어둠', icon: '🌑', desc: '달빛조차 닿지 않는 어둠 속에서 움직이는 암살자. 소리 없이 표적의 숨통을 끊습니다.' },
-            { id: 'sr_4', name: '연금술사 에밀리', title: '현자의 돌 연구가', rarity: 'SR', poolType: 'COMMON', element: '자연', icon: '🧪', desc: '기묘한 영약과 폭탄을 다루는 천재 소녀. 예측 불가능한 실험 결과로 전세를 뒤집습니다.' },
-            { id: 'sr_5', name: '성운의 사수 아리아', title: '유성을 쏘는 활', rarity: 'SR', poolType: 'COMMON', element: '바람', icon: '🏹', desc: '엘프 숲의 수호자. 바람의 정령과 공명하여 백 보 밖의 표적도 정확히 꿰뚫습니다.' },
-            { id: 'sr_6', name: '기계공학자 볼트', title: '강철 심장의 발명가', rarity: 'SR', poolType: 'COMMON', element: '번개', icon: '⚙️', desc: '고대 유물을 개조해 만든 마도 병기를 조종하는 장인. 화력 지원의 핵심입니다.' },
-
-            // R 등급 (6종)
-            { id: 'r_1', name: '견습 검사 로이', title: '모험을 꿈꾸는 소년', rarity: 'R', poolType: 'COMMON', element: '화염', icon: '⚔️', desc: '전설의 영웅을 동경하여 여행을 떠난 초보 검사. 성실함과 용기만큼은 누구에게도 지지 않습니다.' },
-            { id: 'r_2', name: '숲의 정령 피피', title: '작은 이슬의 요정', rarity: 'R', poolType: 'COMMON', element: '자연', icon: '🌿', desc: '고대 숲의 맑은 이슬에서 태어난 작은 정령. 지친 여행자들에게 상쾌한 기운을 불어넣습니다.' },
-            { id: 'r_3', name: '왕국 수비병 마크', title: '성문의 파수꾼', rarity: 'R', poolType: 'COMMON', element: '대지', icon: '🪖', desc: '수도 성문을 지키는 베테랑 병사. 묵묵히 자신의 자리를 지키는 든든한 버팀목입니다.' },
-            { id: 'r_4', name: '마법학교 우등생 루나', title: '별빛 도서관의 사서', rarity: 'R', poolType: 'COMMON', element: '빛', icon: '📖', desc: '고대 마도서를 탐독하는 성실한 견습 마법사. 기초 마법의 정석이라 불립니다.' },
-            { id: 'r_5', name: '황야의 정찰병 잭', title: '바람을 읽는 척후', rarity: 'R', poolType: 'COMMON', element: '바람', icon: '🧭', desc: '거친 황야의 지리를 꿰뚫고 있는 길잡이. 위험을 감지하는 직감이 뛰어납니다.' },
-            { id: 'r_6', name: '초보 치유사 미나', title: '기도하는 수녀', rarity: 'R', poolType: 'COMMON', element: '빛', icon: '🕊️', desc: '작은 성당에서 상처 입은 이들을 돌보는 온화한 치유사. 따스한 빛의 기도를 올립니다.' }
+            // R 등급 (6종 - 94.3%)
+            { id: 'r_1', name: '견습 검사 로한', title: '모험가의 첫걸음', rarity: 'R', poolType: 'COMMON', element: '무속성', icon: '⚔️', desc: '최고의 기사를 꿈꾸며 여행을 떠난 열혈 청년 검사입니다.' },
+            { id: 'r_2', name: '견습 마법사 리아', title: '마법학교 우등생', rarity: 'R', poolType: 'COMMON', element: '화염', icon: '🪄', desc: '기초 원소 마법을 성실히 수련 중인 견습 마도사입니다.' },
+            { id: 'r_3', name: '숲의 정찰병 에단', title: '날렵한 길잡이', rarity: 'R', poolType: 'COMMON', element: '바람', icon: '🧭', desc: '험난한 숲속에서도 길을 잃지 않는 노련한 정찰병입니다.' },
+            { id: 'r_4', name: '성당 수련생 클로에', title: '기도하는 소녀', rarity: 'R', poolType: 'COMMON', element: '빛', icon: '🕊️', desc: '따뜻한 치유의 기도로 다친 모험가들을 돌보는 수련 사제입니다.' },
+            { id: 'r_5', name: '왕국 경비병 마르코', title: '성문의 파수꾼', rarity: 'R', poolType: 'COMMON', element: '대지', icon: '🪖', desc: '왕도의 치안을 책임지는 성실한 창병입니다.' },
+            { id: 'r_6', name: '떠돌이 음유시인 루카', title: '별빛의 노래꾼', rarity: 'R', poolType: 'COMMON', element: '물', icon: '🪕', desc: '아름다운 선율로 동료들의 사기를 북돋아 주는 낭만적인 시인입니다.' }
         ];
 
-        // 배너 목록 구성 (한정 캐릭터 6명 각각의 배너 + 상시 배너 1개)
+        /**
+         * 2. 배너 목록 구성 (한정 픽업 6종 + 상시 기원 1종)
+         */
         const BANNERS = [
-            ...HERO_POOL.filter(h => h.poolType === 'LIMITED').map(hero => ({
-                id: `banner_${hero.id}`,
+            ...HERO_POOL.filter(h => h.poolType === 'LIMITED').map(h => ({
+                id: `banner_${h.id}`,
                 type: 'LIMITED',
-                targetHeroId: hero.id,
-                tabName: hero.name.split(' ')[1] || hero.name,
-                bannerTitle: hero.bannerName,
-                heroName: hero.name,
-                themeGrad: hero.bannerTheme,
-                icon: hero.icon
+                targetHeroId: h.id,
+                tabName: h.name.split(' ').pop(),
+                bannerTitle: h.bannerName,
+                themeGrad: h.bannerTheme,
+                icon: h.icon
             })),
             {
                 id: 'banner_standard',
@@ -692,44 +794,43 @@
                 targetHeroId: null,
                 tabName: '상시 기원',
                 bannerTitle: '별의 인도',
-                heroName: '상시 영웅 6인',
-                themeGrad: 'from-cyan-300 via-indigo-400 to-purple-400',
-                icon: '✨'
+                themeGrad: 'from-cyan-300 via-sky-400 to-indigo-400',
+                icon: '🧭'
             }
         ];
 
+        /**
+         * 3. 확률 및 게임 상태 상수
+         */
         const SINGLE_COST = 160;
         const MULTI_COST = 1600;
         const PITY_MAX = 90;
-        const SOFT_PITY_START = 74; // 74회차(현재 스택 73)부터 확률업 시작
-        const BASE_SSR_RATE = 0.6;  // 0.600%
-        const SOFT_PITY_STEP = 6.0; // 매 회 +6.0% 상승
-        const BASE_SR_RATE = 5.1;   // 5.100%
+        const SOFT_PITY_START = 74;
+        const BASE_SSR_RATE = 0.6;
+        const SOFT_PITY_STEP = 6.0;
+        const BASE_SR_RATE = 5.1;
 
-        /**
-         * 2. 게임 상태 관리 (원신식 한정/상시 분리 천장 및 50:50 확정천장 포함)
-         */
         let gameState = {
             gems: 3200,
             tickets: 10,
             activeBannerId: 'banner_lim_1',
-            // 한정 기원 상태 (모든 한정 배너 공유)
             limitedPity: 0,
             limitedSrPity: 0,
-            limitedGuaranteed: false, // true면 다음 SSR 100% 한정 픽업 확정
+            limitedGuaranteed: false,
             limitedTotalPulls: 0,
-            // 상시 기원 상태 (별도 스택)
             standardPity: 0,
             standardSrPity: 0,
             standardTotalPulls: 0,
-            inventory: {},     // { heroId: count }
+            inventory: {},
+            customImages: {},
             muted: false
         };
 
         let currentFilter = 'ALL';
         let currentPullResults = [];
-        let animTimer = null;
         let isAnimating = false;
+        let animTimer = null;
+        let pendingUploadHeroId = null;
 
         function loadGameState() {
             try {
@@ -737,9 +838,6 @@
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     gameState = { ...gameState, ...parsed };
-                }
-                if (!BANNERS.some(b => b.id === gameState.activeBannerId)) {
-                    gameState.activeBannerId = BANNERS[0].id;
                 }
             } catch (e) {
                 console.warn('저장 데이터 로드 실패:', e);
@@ -754,26 +852,9 @@
             }
         }
 
-        function getActiveBanner() {
-            return BANNERS.find(b => b.id === gameState.activeBannerId) || BANNERS[0];
-        }
-
-        function selectBanner(bannerId) {
-            if (gameState.activeBannerId === bannerId) return;
-            SoundEngine.click();
-            gameState.activeBannerId = bannerId;
-            saveGameState();
-            updateUI();
-        }
-
-        /**
-         * 현재 천장 스택 기준 다음 1회 소환의 SSR 확률(%) 계산
-         */
         function getCurrentSSRRate(currentPityStack) {
-            const nextPullNumber = currentPityStack + 1; // 이번이 몇 번째 뽑기인지 (1 ~ 90)
-            if (nextPullNumber >= PITY_MAX) {
-                return 100.0;
-            }
+            const nextPullNumber = currentPityStack + 1;
+            if (nextPullNumber >= PITY_MAX) return 100.0;
             if (nextPullNumber >= SOFT_PITY_START) {
                 const boosted = BASE_SSR_RATE + (nextPullNumber - (SOFT_PITY_START - 1)) * SOFT_PITY_STEP;
                 return Math.min(100.0, boosted);
@@ -781,17 +862,61 @@
             return BASE_SSR_RATE;
         }
 
+        function getActiveBanner() {
+            return BANNERS.find(b => b.id === gameState.activeBannerId) || BANNERS[0];
+        }
+
+        function selectBanner(bannerId) {
+            SoundEngine.click();
+            gameState.activeBannerId = bannerId;
+            saveGameState();
+            updateUI();
+        }
+
+        function switchTab(tabName) {
+            SoundEngine.click();
+            const summonView = document.getElementById('view-summon');
+            const codexView = document.getElementById('view-codex');
+            const summonBtn = document.getElementById('tab-summon');
+            const codexBtn = document.getElementById('tab-codex');
+
+            if (tabName === 'summon') {
+                summonView.classList.remove('hidden');
+                codexView.classList.add('hidden');
+                summonBtn.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition';
+                codexBtn.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition';
+                updateUI();
+            } else {
+                summonView.classList.add('hidden');
+                codexView.classList.remove('hidden');
+                codexBtn.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition';
+                summonBtn.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition';
+                renderCodex();
+            }
+        }
+
+        function renderHeroVisual(hero, imgClass, iconClass) {
+            const imgSrc = getHeroImageSrc(hero);
+            if (imgSrc) {
+                return `
+                    <img src="${imgSrc}" alt="${hero.name}"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                         class="${imgClass} object-cover object-top" />
+                    <div style="display:none;" class="${iconClass} items-center justify-center">${hero.icon}</div>
+                `;
+            }
+            return `<div class="${iconClass} flex items-center justify-center">${hero.icon}</div>`;
+        }
+
         /**
-         * 3. Web Audio API 기반 사운드 엔진 (외부 오디오 파일 없이 효과음 합성)
+         * 4. Web Audio API 합성 사운드 엔진
          */
         const SoundEngine = {
             ctx: null,
             init() {
                 if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) {
-                        this.ctx = new AudioContext();
-                    }
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
                 }
                 if (this.ctx && this.ctx.state === 'suspended') {
                     this.ctx.resume();
@@ -860,27 +985,64 @@
         }
 
         /**
-         * 4. 탭 전환 및 모달 제어
+         * 깃허브(GitHub Pages)에 업로드된 이미지 파일 자동 탐색기
+         * 저장소 루트(./) 및 ./images/ 폴더에 올라간 jpg/png/webp 파일을 자동으로 찾아 연결
          */
-        function switchTab(tabName) {
-            SoundEngine.click();
-            const summonView = document.getElementById('view-summon');
-            const codexView = document.getElementById('view-codex');
-            const tabSummon = document.getElementById('tab-summon');
-            const tabCodex = document.getElementById('tab-codex');
+        const resolvedGithubImages = {};
 
-            if (tabName === 'summon') {
-                summonView.classList.remove('hidden');
-                codexView.classList.add('hidden');
-                tabSummon.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition';
-                tabCodex.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition';
-            } else {
-                summonView.classList.add('hidden');
-                codexView.classList.remove('hidden');
-                tabCodex.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition';
-                tabSummon.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition';
-                renderCodex();
+        function probeGithubImageCandidates(hero) {
+            const candidates = hero.imageCandidates || [
+                `./${hero.id}.jpg`, `./${hero.id}.png`, `./${hero.id}.webp`,
+                `./images/${hero.id}.jpg`, `./images/${hero.id}.png`
+            ];
+
+            let idx = 0;
+            function tryNext() {
+                if (idx >= candidates.length) return;
+                const url = candidates[idx++];
+                const testImg = new Image();
+                testImg.onload = function () {
+                    resolvedGithubImages[hero.id] = url;
+                    updateUI();
+                    renderCodex();
+                };
+                testImg.onerror = function () {
+                    tryNext();
+                };
+                testImg.src = url;
             }
+            tryNext();
+        }
+
+        function scanAllGithubImages() {
+            HERO_POOL.forEach(hero => probeGithubImageCandidates(hero));
+        }
+
+        function recheckGithubImages() {
+            SoundEngine.click();
+            Object.keys(resolvedGithubImages).forEach(k => delete resolvedGithubImages[k]);
+            scanAllGithubImages();
+            setTimeout(() => {
+                renderIllustManagerList();
+                const foundCount = Object.keys(resolvedGithubImages).length;
+                showToast(`깃허브 저장소에서 일러스트 ${foundCount}개를 탐지했습니다.`, 'info');
+            }, 600);
+        }
+
+        /**
+         * 일러스트 이미지 우선순위:
+         * 1) 사용자가 직접 등록/수정한 이미지 (gameState.customImages)
+         * 2) 깃허브 저장소에서 자동 탐지된 이미지 (resolvedGithubImages)
+         * 3) 기본 설정된 경로 (hero.image)
+         */
+        function getHeroImageSrc(hero) {
+            if (gameState && gameState.customImages && gameState.customImages[hero.id]) {
+                return gameState.customImages[hero.id];
+            }
+            if (resolvedGithubImages[hero.id]) {
+                return resolvedGithubImages[hero.id];
+            }
+            return hero.image || null;
         }
 
         function openModal(id) {
@@ -904,6 +1066,7 @@
         }
 
         function confirmResetData() {
+            const preservedCustomImages = gameState.customImages || {};
             localStorage.removeItem('astral_gacha_save_v2');
             gameState = {
                 gems: 3200,
@@ -917,31 +1080,185 @@
                 standardSrPity: 0,
                 standardTotalPulls: 0,
                 inventory: {},
+                customImages: preservedCustomImages,
                 muted: gameState.muted
             };
             saveGameState();
             closeModal('reset-modal');
             updateUI();
             renderCodex();
-            showToast('모든 소환 기록이 초기화되었습니다.', 'info');
+            showToast('소환 기록이 초기화되었습니다. (등록한 일러스트는 유지됩니다)', 'info');
         }
 
         /**
-         * 5. 재화 충전 및 광고 시뮬레이션
+         * 커스텀 일러스트 등록 / 업로드 / URL 적용 / 초기화 로직
          */
-        function addCurrency(gemsToAdd, ticketsToAdd) {
+        function openIllustModal() {
+            renderIllustManagerList();
+            openModal('illust-modal');
+        }
+
+        function renderIllustManagerList() {
+            const listEl = document.getElementById('illust-manager-list');
+            if (!listEl) return;
+
+            listEl.innerHTML = HERO_POOL.map(hero => {
+                const customSrc = gameState.customImages ? gameState.customImages[hero.id] : null;
+                const activeSrc = getHeroImageSrc(hero);
+                const rarityColor = hero.rarity === 'SSR'
+                    ? 'text-amber-400 border-amber-500/40 bg-amber-500/10'
+                    : hero.rarity === 'SR'
+                        ? 'text-purple-400 border-purple-500/40 bg-purple-500/10'
+                        : 'text-sky-400 border-sky-500/40 bg-sky-500/10';
+
+                return `
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-14 h-14 rounded-xl overflow-hidden border border-slate-700 bg-slate-900 shrink-0 flex items-center justify-center">
+                                ${activeSrc
+                                    ? `<img src="${activeSrc}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" class="w-full h-full object-cover object-top" />
+                                       <span style="display:none;" class="text-2xl items-center justify-center">${hero.icon}</span>`
+                                    : `<span class="text-2xl">${hero.icon}</span>`
+                                }
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[10px] font-black px-1.5 py-0.5 rounded border ${rarityColor}">${hero.rarity}</span>
+                                    <span class="font-bold text-sm text-white">${hero.name}</span>
+                                    ${customSrc ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">등록됨</span>' : ''}
+                                </div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">${hero.title} · ${hero.element} 속성</div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <button onclick="triggerIllustFileUpload('${hero.id}')" class="px-3 py-1.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-upload"></i>
+                                <span>파일 선택</span>
+                            </button>
+                            <button onclick="toggleUrlInputRow('${hero.id}')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition">
+                                URL 입력
+                            </button>
+                            ${customSrc ? `
+                                <button onclick="removeCustomIllust('${hero.id}')" title="등록 일러스트 삭제" class="px-2.5 py-1.5 rounded-xl bg-rose-950/70 hover:bg-rose-800/70 border border-rose-500/40 text-rose-300 text-xs transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div id="url-row-${hero.id}" class="hidden bg-slate-900/90 border border-indigo-500/30 rounded-xl p-2.5 flex items-center gap-2">
+                        <input id="url-input-${hero.id}" type="text" placeholder="https://... 이미지 주소를 붙여넣으세요" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-400" />
+                        <button onclick="applyCustomIllustUrl('${hero.id}')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs">적용</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function triggerIllustFileUpload(heroId) {
+            SoundEngine.click();
+            pendingUploadHeroId = heroId;
+            const fileInput = document.getElementById('hero-illust-file-input');
+            if (fileInput) {
+                fileInput.value = '';
+                fileInput.click();
+            }
+        }
+
+        function handleIllustFileSelect(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file || !pendingUploadHeroId) return;
+
+            const heroId = pendingUploadHeroId;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    // localStorage 용량 초과 방지를 위해 최대 512px 크기로 자동 리사이징 후 JPEG 압축
+                    const maxDim = 512;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    if (!gameState.customImages) gameState.customImages = {};
+                    gameState.customImages[heroId] = compressedDataUrl;
+
+                    saveGameState();
+                    updateUI();
+                    renderCodex();
+                    renderIllustManagerList();
+
+                    const hero = HERO_POOL.find(item => item.id === heroId);
+                    SoundEngine.reveal('SR');
+                    showToast(`[${hero ? hero.name : '영웅'}] 일러스트가 적용되었습니다!`, 'success');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function toggleUrlInputRow(heroId) {
+            SoundEngine.click();
+            const row = document.getElementById(`url-row-${heroId}`);
+            if (row) row.classList.toggle('hidden');
+        }
+
+        function applyCustomIllustUrl(heroId) {
+            const input = document.getElementById(`url-input-${heroId}`);
+            if (!input) return;
+            const url = input.value.trim();
+            if (!url) {
+                showToast('이미지 URL을 입력해 주세요.', 'error');
+                return;
+            }
+            if (!gameState.customImages) gameState.customImages = {};
+            gameState.customImages[heroId] = url;
+            saveGameState();
+            updateUI();
+            renderCodex();
+            renderIllustManagerList();
+
+            const hero = HERO_POOL.find(item => item.id === heroId);
             SoundEngine.reveal('SR');
-            gameState.gems += gemsToAdd;
-            gameState.tickets += ticketsToAdd;
+            showToast(`[${hero ? hero.name : '영웅'}] 이미지 URL이 적용되었습니다!`, 'success');
+        }
+
+        function removeCustomIllust(heroId) {
+            SoundEngine.click();
+            if (gameState.customImages && gameState.customImages[heroId]) {
+                delete gameState.customImages[heroId];
+                saveGameState();
+                updateUI();
+                renderCodex();
+                renderIllustManagerList();
+                showToast('등록된 일러스트가 삭제되었습니다.', 'info');
+            }
+        }
+
+        function addCurrency(gemsAmount, ticketsAmount) {
+            SoundEngine.reveal('SR');
+            gameState.gems += gemsAmount;
+            gameState.tickets += ticketsAmount;
             saveGameState();
             updateUI();
 
-            if (gemsToAdd > 0) {
-                showToast(`성정석 ${gemsToAdd.toLocaleString()}개를 획득했습니다!`, 'success');
-            }
-            if (ticketsToAdd > 0) {
-                showToast(`별의 소환 티켓 ${ticketsToAdd}장을 획득했습니다!`, 'success');
-            }
+            const parts = [];
+            if (gemsAmount > 0) parts.push(`성정석 ${gemsAmount.toLocaleString()}개`);
+            if (ticketsAmount > 0) parts.push(`소환 티켓 ${ticketsAmount}장`);
+            showToast(`${parts.join(', ')} 충전 완료!`, 'success');
         }
 
         function simulateAdReward() {
@@ -1208,7 +1525,7 @@
 
                             <!-- 카드 앞면 -->
                             <div class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl ${borderClass} p-2.5 flex flex-col justify-between shadow-xl overflow-hidden ${isSSR ? 'holo-shimmer' : ''}">
-                                <div class="flex items-center justify-between">
+                                <div class="relative z-10 flex items-center justify-between">
                                     <span class="px-2 py-0.5 rounded-md text-[10px] font-black ${badgeColor}">${h.rarity}</span>
                                     ${item.isNew
                                         ? '<span class="px-1.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[9px]">NEW</span>'
@@ -1216,13 +1533,18 @@
                                     }
                                 </div>
 
-                                <div class="flex flex-col items-center my-auto">
-                                    <div class="text-4xl sm:text-5xl mb-1.5 drop-shadow-md">${h.icon}</div>
+                                <div class="relative z-10 flex flex-col items-center my-auto w-full">
+                                    ${getHeroImageSrc(h)
+                                        ? `<div class="w-full h-24 sm:h-28 rounded-xl overflow-hidden border border-amber-400/50 mb-1.5 shadow-md bg-slate-950">
+                                               ${renderHeroVisual(h, 'w-full h-full', 'w-full h-full text-4xl')}
+                                           </div>`
+                                        : `<div class="text-4xl sm:text-5xl mb-1.5 drop-shadow-md">${h.icon}</div>`
+                                    }
                                     <div class="text-[10px] text-slate-400 font-medium">${h.element} 속성</div>
                                     <div class="font-extrabold text-xs sm:text-sm text-white text-center leading-tight mt-0.5">${h.name}</div>
                                 </div>
 
-                                <div class="text-center">
+                                <div class="relative z-10 text-center">
                                     ${item.isOffBanner
                                         ? '<span class="inline-block text-[9px] font-bold text-rose-300 bg-rose-950/90 border border-rose-500/40 px-1.5 py-0.5 rounded">상시 (다음 확정!)</span>'
                                         : h.poolType === 'LIMITED'
@@ -1338,8 +1660,8 @@
                 const ownedCount = gameState.inventory[hero.id] || 0;
                 showcaseEl.innerHTML = `
                     <div class="relative flex flex-col items-center animate-float">
-                        <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-gradient-to-b from-amber-400/20 via-purple-500/20 to-slate-900/90 border-2 border-amber-400/70 ssr-rainbow flex items-center justify-center text-6xl sm:text-7xl shadow-2xl">
-                            ${hero.icon}
+                        <div class="w-44 h-36 sm:w-64 sm:h-44 rounded-3xl overflow-hidden bg-gradient-to-b from-amber-400/20 via-purple-500/20 to-slate-900/90 border-2 border-amber-400/70 ssr-rainbow flex items-center justify-center shadow-2xl">
+                            ${renderHeroVisual(hero, 'w-full h-full', 'text-6xl sm:text-7xl')}
                         </div>
                         <span class="mt-2 px-3 py-0.5 rounded-full text-[11px] font-black bg-amber-400 text-slate-950 shadow">
                             PICK UP · ${hero.element} 속성 ${ownedCount > 0 ? `(보유 +${ownedCount - 1})` : ''}
@@ -1575,13 +1897,18 @@
                                 ${poolTag}
                             </div>
                             ${unlocked
-                                ? `<span class="text-[11px] font-bold text-amber-300">보유 ${count}</span>`
-                                : `<span class="text-[10px] text-slate-500"><i class="fa-solid fa-lock"></i> 미획득</span>`
+                                ? `<span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-full">보유 (${count})</span>`
+                                : `<span class="text-[10px] text-slate-500 font-semibold">미획득</span>`
                             }
                         </div>
 
-                        <div class="my-3 text-center">
-                            <div class="text-4xl mb-1.5">${h.icon}</div>
+                        <div class="my-2.5 text-center">
+                            ${getHeroImageSrc(h)
+                                ? `<div class="w-full h-24 sm:h-28 rounded-xl overflow-hidden border border-slate-700/70 mb-2 bg-slate-950">
+                                       ${renderHeroVisual(h, 'w-full h-full', 'w-full h-full text-4xl')}
+                                   </div>`
+                                : `<div class="text-4xl my-2">${h.icon}</div>`
+                            }
                             <div class="font-bold text-sm text-white">${h.name}</div>
                             <div class="text-[11px] text-slate-400">${h.title}</div>
                         </div>
@@ -1612,7 +1939,12 @@
                     <span>·</span>
                     <span>${hero.element} 속성</span>
                 </div>
-                <div class="text-6xl my-3 drop-shadow-lg">${hero.icon}</div>
+                ${getHeroImageSrc(hero)
+                    ? `<div class="w-full h-44 rounded-2xl overflow-hidden border border-amber-400/50 my-2.5 shadow-xl bg-slate-950">
+                           ${renderHeroVisual(hero, 'w-full h-full', 'w-full h-full text-6xl')}
+                       </div>`
+                    : `<div class="text-6xl my-3 drop-shadow-lg">${hero.icon}</div>`
+                }
                 <div class="text-xs text-indigo-300 font-semibold">${hero.title}</div>
                 <h4 class="text-xl font-black text-white mt-0.5">${hero.name}</h4>
                 <div class="mt-2">
@@ -1659,6 +1991,7 @@
         // 초기 실행
         window.onload = function () {
             loadGameState();
+            scanAllGithubImages();
             updateSoundIcon();
             updateUI();
         };
