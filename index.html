@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아스트랄 크로니클 : 별의 소환 (Gacha Simulator)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans KR & Cinzel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* 기본 폰트 및 다크 SF/판타지 배경 설정 */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 60%, #030508 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-fantasy {
+            font-family: 'Cinzel', 'Noto Sans KR', serif;
+        }
+
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(167, 139, 250, 0.8);
+        }
+
+        /* 네온 & 골드 글로우 효과 */
+        .glow-gold {
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.4), inset 0 0 10px rgba(250, 204, 21, 0.2);
+        }
+        .glow-purple {
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 10px rgba(168, 85, 247, 0.2);
+        }
+        .glow-blue {
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.35), inset 0 0 8px rgba(56, 189, 248, 0.15);
+        }
+
+        /* 무지개 테두리 애니메이션 (SSR 전용) */
+        @keyframes rainbow-border {
+            0% { border-color: #ff0080; box-shadow: 0 0 25px rgba(255, 0, 128, 0.7); }
+            25% { border-color: #ffcc00; box-shadow: 0 0 25px rgba(255, 204, 0, 0.7); }
+            50% { border-color: #00ffcc; box-shadow: 0 0 25px rgba(0, 255, 204, 0.7); }
+            75% { border-color: #7928ca; box-shadow: 0 0 25px rgba(121, 40, 202, 0.7); }
+            100% { border-color: #ff0080; box-shadow: 0 0 25px rgba(255, 0, 128, 0.7); }
+        }
+        .ssr-rainbow {
+            animation: rainbow-border 3s linear infinite;
+        }
+
+        /* 홀로그램 광택 효과 */
+        .holo-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .holo-shimmer::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 40%,
+                rgba(255, 255, 255, 0.45) 50%,
+                rgba(255, 255, 255, 0) 60%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(30deg);
+            animation: shimmer 3.5s infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(30deg); }
+            100% { transform: translateX(100%) rotate(30deg); }
+        }
+
+        /* 소환진 회전 애니메이션 */
+        @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes spin-reverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 24s linear infinite;
+        }
+        .animate-spin-reverse {
+            animation: spin-reverse 18s linear infinite;
+        }
+        .animate-spin-fast {
+            animation: spin-slow 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        /* 부유 애니메이션 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* 카드 뒤집기 3D 효과 */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .preserve-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* 별똥별 유성 애니메이션 */
+        @keyframes meteor-fall {
+            0% {
+                transform: translate(120vw, -40vh) rotate(-35deg) scale(0.5);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            75% {
+                transform: translate(0vw, 25vh) rotate(-35deg) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-10vw, 35vh) rotate(-35deg) scale(2.5);
+                opacity: 0;
+            }
+        }
+        .meteor-anim {
+            animation: meteor-fall 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* 충격파 확장 애니메이션 */
+        @keyframes shockwave {
+            0% {
+                transform: scale(0.1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3.5);
+                opacity: 0;
+            }
+        }
+        .shockwave-anim {
+            animation: shockwave 0.9s ease-out forwards;
+        }
+
+        /* 배경 별빛 파티클 */
+        .star-bg {
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 80px 120px, #a78bfa, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 160px 60px, #38bdf8, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 240px 190px, #facc15, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 310px 90px, #ffffff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 350px 250px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col star-bg relative">
+
+    <!-- 상단 재화 및 시스템 바 -->
+    <header class="sticky top-0 z-30 bg-slate-950/85 backdrop-blur-md border-b border-indigo-500/30 px-3 sm:px-6 py-2.5 shadow-lg">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <!-- 게임 타이틀 -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-cyan-500 p-0.5 shadow-md">
+                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-star text-amber-400 text-sm animate-pulse"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-fantasy font-extrabold text-base sm:text-lg tracking-wider bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 bg-clip-text text-transparent">
+                        ASTRAL CHRONICLE
+                    </h1>
+                    <p class="text-[10px] text-indigo-300 tracking-widest -mt-1">별의 소환 시뮬레이터</p>
+                </div>
+            </div>
+
+            <!-- 재화 표시 및 충전 컨트롤 -->
+            <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+                <!-- 소환 티켓 -->
+                <div class="flex items-center gap-1.5 bg-slate-900/90 border border-cyan-500/40 rounded-full px-3 py-1 shadow-inner">
+                    <i class="fa-solid fa-ticket text-cyan-400 text-xs sm:text-sm"></i>
+                    <span id="ticket-count" class="font-bold text-xs sm:text-sm text-cyan-100 tabular-nums">10</span>
+                </div>
+
+                <!-- 성정석 (보석) + 무료 충전 버튼 -->
+                <div class="flex items-center gap-1.5 bg-slate-900/90 border border-amber-500/40 rounded-full pl-3 pr-1 py-1 shadow-inner">
+                    <i class="fa-solid fa-gem text-amber-400 text-xs sm:text-sm"></i>
+                    <span id="gem-count" class="font-bold text-xs sm:text-sm text-amber-100 tabular-nums mr-1">3,200</span>
+                    <button onclick="openChargeModal()" title="무료 보석 충전" class="w-6 h-6 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 flex items-center justify-center font-black text-xs transition transform active:scale-90 shadow">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+
+                <!-- 사운드 음소거 토글 -->
+                <button id="sound-toggle-btn" onclick="toggleMute()" title="사운드 켜기/끄기" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-indigo-400 text-indigo-300 flex items-center justify-center transition">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-xs sm:text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 내비게이션 탭 (소환 / 도감) -->
+    <nav class="max-w-6xl w-full mx-auto px-4 pt-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div class="flex gap-2">
+                <button id="tab-summon" onclick="switchTab('summon')" class="px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition">
+                    <i class="fa-solid fa-wand-sparkles"></i>
+                    <span>별의 소환</span>
+                </button>
+                <button id="tab-codex" onclick="switchTab('codex')" class="px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition">
+                    <i class="fa-solid fa-book-journal-whills"></i>
+                    <span>영웅 도감</span>
+                    <span id="codex-badge" class="text-[11px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full">0%</span>
+                </button>
+            </div>
+
+            <!-- 확률 정보 & 데이터 초기화 버튼 -->
+            <div class="flex items-center gap-2">
+                <button onclick="openRateModal()" class="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-circle-info text-indigo-400"></i>
+                    <span>확률 정보</span>
+                </button>
+                <button onclick="openResetModal()" title="데이터 초기화" class="p-1.5 rounded-xl bg-slate-900/90 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-500/50 text-xs text-slate-400 hover:text-rose-300 transition">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-4 flex flex-col">
+
+        <!-- 1. 소환(가챠) 뷰 -->
+        <section id="view-summon" class="flex-1 flex flex-col justify-between gap-4">
+            <!-- 픽업 배너 카드 -->
+            <div class="relative rounded-3xl overflow-hidden border border-amber-500/40 bg-gradient-to-br from-slate-900 via-indigo-950/90 to-slate-950 p-5 sm:p-8 shadow-2xl flex-1 flex flex-col justify-between min-h-[410px]">
+                
+                <!-- 배경 회전 마법진 SVG -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25">
+                    <svg class="w-[340px] h-[340px] sm:w-[480px] sm:h-[480px] text-amber-400 animate-spin-slow" viewBox="0 0 200 200" fill="none">
+                        <circle cx="100" cy="100" r="95" stroke="currentColor" stroke-width="0.8" stroke-dasharray="4 4"/>
+                        <circle cx="100" cy="100" r="82" stroke="currentColor" stroke-width="1.2"/>
+                        <polygon points="100,18 171,141 29,141" stroke="currentColor" stroke-width="0.8"/>
+                        <polygon points="100,182 171,59 29,59" stroke="currentColor" stroke-width="0.8"/>
+                        <circle cx="100" cy="100" r="45" stroke="currentColor" stroke-width="1" stroke-dasharray="8 3"/>
+                    </svg>
+                </div>
+
+                <!-- 배너 상단 태그 & 천장 카운터 -->
+                <div class="relative z-10 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-500/20 to-purple-500/20 border border-amber-400/50 text-amber-300 mb-2">
+                            <i class="fa-solid fa-sparkles"></i> 기간 한정 특별 소환
+                        </span>
+                        <h2 class="text-2xl sm:text-4xl font-black tracking-tight text-white drop-shadow-md">
+                            성운의 수호자 <span class="bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-400 bg-clip-text text-transparent">셀레스티아</span>
+                        </h2>
+                        <p class="text-xs sm:text-sm text-indigo-200/80 mt-1 max-w-lg">
+                            별빛의 인도 아래 잠든 전설의 영웅들을 소환하세요. <span class="text-purple-300 font-semibold">10회 소환 시 SR 이상 영웅 1명 확정!</span>
+                        </p>
+                    </div>
+
+                    <!-- 천장(Pity) 시스템 UI -->
+                    <div class="bg-slate-950/85 backdrop-blur-md border border-amber-500/40 rounded-2xl p-3 sm:p-3.5 min-w-[175px] shadow-lg">
+                        <div class="flex items-center justify-between text-xs text-slate-300 mb-1">
+                            <span class="flex items-center gap-1 font-medium">
+                                <i class="fa-solid fa-crown text-amber-400"></i> SSR 확정 천장
+                            </span>
+                            <span id="pity-text" class="font-bold text-amber-400">80회 남음</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="pity-bar" class="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-orange-400 transition-all duration-300" style="width: 0%;"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1 text-right">누적 소환: <span id="total-pulls-text" class="text-slate-200 font-semibold">0</span>회</p>
+                    </div>
+                </div>
+
+                <!-- 중앙 픽업 대표 캐릭터 일러스트 프리뷰 (SVG 아트) -->
+                <div class="relative z-10 my-4 flex flex-col sm:flex-row items-center justify-center gap-6">
+                    <div class="animate-float relative group cursor-pointer" onclick="openRateModal()">
+                        <div class="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-gradient-to-b from-amber-400/30 via-purple-600/30 to-transparent p-1 border border-amber-300/50 shadow-[0_0_40px_rgba(251,191,36,0.35)] flex items-center justify-center">
+                            <!-- 대표 SSR 캐릭터 SVG 엠블럼 -->
+                            <svg class="w-28 h-28 sm:w-36 sm:h-36 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]" viewBox="0 0 120 120" fill="none">
+                                <defs>
+                                    <linearGradient id="heroGrad" x1="0" y1="0" x2="120" y2="120">
+                                        <stop offset="0%" stop-color="#fef08a"/>
+                                        <stop offset="50%" stop-color="#f59e0b"/>
+                                        <stop offset="100%" stop-color="#c084fc"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M60 10 L72 45 L108 45 L79 67 L90 102 L60 80 L30 102 L41 67 L12 45 L48 45 Z" fill="url(#heroGrad)" opacity="0.25"/>
+                                <circle cx="60" cy="60" r="34" stroke="url(#heroGrad)" stroke-width="2.5"/>
+                                <path d="M60 22 C65 45, 75 55, 98 60 C75 65, 65 75, 60 98 C55 75, 45 65, 22 60 C45 55, 55 45, 60 22 Z" fill="url(#heroGrad)"/>
+                                <circle cx="60" cy="60" r="8" fill="#ffffff"/>
+                            </svg>
+                        </div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-[11px] px-3 py-0.5 rounded-full shadow whitespace-nowrap">
+                            SSR 픽업 영웅 4종
+                        </div>
+                    </div>
+
+                    <!-- 주요 픽업 SSR 미리보기 뱃지 리스트 -->
+                    <div class="grid grid-cols-2 gap-2 text-xs max-w-xs w-full">
+                        <div class="bg-slate-950/75 border border-amber-500/30 rounded-xl p-2.5 flex items-center gap-2">
+                            <span class="text-lg">👑</span>
+                            <div>
+                                <div class="text-[10px] text-amber-400 font-bold">SSR · 빛</div>
+                                <div class="font-bold text-slate-100">성녀 셀레스티아</div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950/75 border border-amber-500/30 rounded-xl p-2.5 flex items-center gap-2">
+                            <span class="text-lg">🐉</span>
+                            <div>
+                                <div class="text-[10px] text-amber-400 font-bold">SSR · 화염</div>
+                                <div class="font-bold text-slate-100">적룡제 이그니스</div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950/75 border border-amber-500/30 rounded-xl p-2.5 flex items-center gap-2">
+                            <span class="text-lg">🌌</span>
+                            <div>
+                                <div class="text-[10px] text-amber-400 font-bold">SSR · 공허</div>
+                                <div class="font-bold text-slate-100">시공의 마녀 녹스</div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950/75 border border-amber-500/30 rounded-xl p-2.5 flex items-center gap-2">
+                            <span class="text-lg">⚔️</span>
+                            <div>
+                                <div class="text-[10px] text-amber-400 font-bold">SSR · 번개</div>
+                                <div class="font-bold text-slate-100">뇌신 발키리 프레이야</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 하단 소환 버튼 영역 -->
+                <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <!-- 1회 소환 버튼 -->
+                    <button onclick="performGacha(1)" class="group relative overflow-hidden rounded-2xl bg-slate-900/95 hover:bg-slate-800 border-2 border-cyan-500/60 hover:border-cyan-400 p-3.5 sm:p-4 transition-all transform active:scale-[0.98] shadow-lg shadow-cyan-950/50 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 font-black">
+                                1x
+                            </div>
+                            <div class="text-left">
+                                <div class="font-extrabold text-base sm:text-lg text-white group-hover:text-cyan-200 transition">1회 소환</div>
+                                <div class="text-[11px] text-slate-400">운명의 별빛 1개 소환</div>
+                            </div>
+                        </div>
+                        <div id="cost-1-display" class="flex items-center gap-1.5 bg-slate-950/90 px-3 py-1.5 rounded-xl border border-slate-700 font-bold text-sm">
+                            <!-- JS로 티켓 또는 보석 소모량 동적 렌더링 -->
+                        </div>
+                    </button>
+
+                    <!-- 10회 연속 소환 버튼 -->
+                    <button onclick="performGacha(10)" class="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 p-3.5 sm:p-4 transition-all transform active:scale-[0.98] shadow-xl shadow-amber-500/25 flex items-center justify-between text-slate-950 holo-shimmer">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-950/20 border border-slate-950/30 flex items-center justify-center text-slate-950 font-black">
+                                10x
+                            </div>
+                            <div class="text-left">
+                                <div class="font-black text-base sm:text-lg flex items-center gap-1.5">
+                                    <span>10회 연속 소환</span>
+                                    <span class="text-[10px] bg-slate-950 text-amber-300 px-2 py-0.5 rounded-full font-bold">SR 이상 확정</span>
+                                </div>
+                                <div class="text-[11px] text-slate-900 font-semibold">찬란한 별무리를 한 번에 소환</div>
+                            </div>
+                        </div>
+                        <div id="cost-10-display" class="flex items-center gap-1.5 bg-slate-950 text-amber-300 px-3 py-1.5 rounded-xl font-bold text-sm shadow">
+                            <!-- JS로 티켓 또는 보석 소모량 동적 렌더링 -->
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 영웅 도감 (인벤토리) 뷰 -->
+        <section id="view-codex" class="hidden flex-1 flex flex-col gap-4">
+            <!-- 도감 상단 통계 및 필터 -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-white">영웅 도감 및 보유 현황</h2>
+                        <span id="codex-fraction" class="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-full">0 / 16</span>
+                    </div>
+                    <div class="w-full sm:w-64 h-2 bg-slate-800 rounded-full overflow-hidden mt-2">
+                        <div id="codex-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-amber-400 transition-all duration-500" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- 등급 필터 버튼 -->
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="filterCodex('ALL')" data-filter="ALL" class="codex-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white transition">전체</button>
+                    <button onclick="filterCodex('SSR')" data-filter="SSR" class="codex-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-amber-400 hover:bg-slate-700 transition">SSR</button>
+                    <button onclick="filterCodex('SR')" data-filter="SR" class="codex-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-purple-400 hover:bg-slate-700 transition">SR</button>
+                    <button onclick="filterCodex('R')" data-filter="R" class="codex-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-sky-400 hover:bg-slate-700 transition">R</button>
+                </div>
+            </div>
+
+            <!-- 도감 그리드 리스트 -->
+            <div id="codex-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 pb-6">
+                <!-- JS로 동적 렌더링 -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- 소환 연출 오버레이 (애니메이션 & 결과 카드 공개) -->
+    <!-- ===================================================================== -->
+    <div id="summon-overlay" class="fixed inset-0 z-50 hidden bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 overflow-y-auto">
+        
+        <!-- 1단계: 별똥별 및 소환진 폭발 연출 -->
+        <div id="summon-anim-stage" class="relative w-full h-full flex flex-col items-center justify-center">
+            <!-- 스킵 버튼 -->
+            <button onclick="skipAnimation()" class="absolute top-4 right-4 z-30 px-4 py-2 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-600 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition">
+                <span>연출 스킵</span>
+                <i class="fa-solid fa-forward"></i>
+            </button>
+
+            <!-- 유성(별똥별) 이펙트 컨테이너 -->
+            <div id="meteor-container" class="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
+                <div id="meteor-star" class="w-6 h-6 rounded-full bg-white shadow-[0_0_40px_15px_#fff]"></div>
+            </div>
+
+            <!-- 중앙 소환진 코어 -->
+            <div id="summon-core" class="relative flex items-center justify-center scale-75 sm:scale-100">
+                <div id="shockwave-ring" class="absolute w-32 h-32 rounded-full border-4 border-white opacity-0"></div>
+                <svg id="summon-circle-svg" class="w-72 h-72 sm:w-96 sm:h-96 text-sky-400 animate-spin-fast transition-colors duration-500" viewBox="0 0 200 200" fill="none">
+                    <circle cx="100" cy="100" r="92" stroke="currentColor" stroke-width="2" stroke-dasharray="10 5"/>
+                    <circle cx="100" cy="100" r="76" stroke="currentColor" stroke-width="1.5"/>
+                    <polygon points="100,15 174,142 26,142" stroke="currentColor" stroke-width="1.5"/>
+                    <polygon points="100,185 174,58 26,58" stroke="currentColor" stroke-width="1.5"/>
+                    <circle cx="100" cy="100" r="32" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <div id="summon-grade-hint" class="absolute font-fantasy font-black text-2xl sm:text-3xl tracking-widest text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.9)] animate-pulse">
+                    SUMMONING...
+                </div>
+            </div>
+        </div>
+
+        <!-- 2단계: 소환 결과 카드 공개 스테이지 -->
+        <div id="summon-result-stage" class="hidden w-full max-w-5xl flex flex-col items-center justify-between my-auto py-4 gap-5">
+            <div class="text-center">
+                <h3 class="text-xl sm:text-2xl font-black text-white tracking-wide">소환 결과</h3>
+                <p class="text-xs text-slate-400 mt-0.5">카드를 터치하거나 아래 버튼으로 모두 공개할 수 있습니다</p>
+            </div>
+
+            <!-- 결과 카드 그리드 -->
+            <div id="result-cards-grid" class="w-full grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 justify-items-center">
+                <!-- JS로 카드 동적 생성 -->
+            </div>
+
+            <!-- 하단 액션 버튼 -->
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button id="reveal-all-btn" onclick="revealAllCards()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>모두 뒤집기</span>
+                </button>
+                <button id="close-result-btn" onclick="closeSummonOverlay()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-check"></i>
+                    <span>확인 완료</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 1: 무료 보석 & 티켓 충전 상점 -->
+    <!-- ===================================================================== -->
+    <div id="charge-modal" class="fixed inset-0 z-40 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('charge-modal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-2.5 mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400">
+                    <i class="fa-solid fa-gem text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-extrabold text-white">성정석 & 티켓 무료 충전소</h3>
+                    <p class="text-xs text-slate-400">테스트용 무료 충전 및 광고 시뮬레이션을 지원합니다</p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <!-- 테스트용 즉시 충전 1 -->
+                <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">💎</span>
+                        <div>
+                            <div class="font-bold text-sm text-amber-300">성정석 1,600개 (10회분)</div>
+                            <div class="text-[11px] text-slate-400">쿨타임 없는 테스트용 즉시 지급</div>
+                        </div>
+                    </div>
+                    <button onclick="addCurrency(1600, 0)" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition active:scale-95">
+                        무료 받기
+                    </button>
+                </div>
+
+                <!-- 테스트용 즉시 충전 2 -->
+                <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🎟️</span>
+                        <div>
+                            <div class="font-bold text-sm text-cyan-300">별의 소환 티켓 10장</div>
+                            <div class="text-[11px] text-slate-400">쿨타임 없는 테스트용 즉시 지급</div>
+                        </div>
+                    </div>
+                    <button onclick="addCurrency(0, 10)" class="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition active:scale-95">
+                        무료 받기
+                    </button>
+                </div>
+
+                <!-- 광고 시청 시뮬레이션 보너스 -->
+                <div class="bg-gradient-to-r from-indigo-950/90 to-purple-950/90 border border-purple-500/40 rounded-2xl p-3.5 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🎬</span>
+                        <div>
+                            <div class="font-bold text-sm text-purple-200">스페셜 보급 (보석 8,000개)</div>
+                            <div class="text-[11px] text-purple-300/80">3초 광고 시청 시뮬레이션 보상</div>
+                        </div>
+                    </div>
+                    <button id="ad-sim-btn" onclick="simulateAdReward()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition active:scale-95 flex items-center gap-1.5">
+                        <i class="fa-solid fa-play"></i>
+                        <span>광고 보기</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 2: 확률 정보 안내 -->
+    <!-- ===================================================================== -->
+    <div id="rate-modal" class="fixed inset-0 z-40 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-indigo-500/40 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+            <button onclick="closeModal('rate-modal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h3 class="text-lg font-extrabold text-white flex items-center gap-2 mb-1">
+                <i class="fa-solid fa-scale-balanced text-indigo-400"></i>
+                <span>소환 확률 및 천장 규칙 안내</span>
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">모든 확률은 독립 시행으로 적용되며 천장 규칙이 우선 보장됩니다.</p>
+
+            <div class="overflow-y-auto pr-1 space-y-4 text-xs">
+                <!-- 기본 등급별 확률 요약 -->
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-amber-500/10 border border-amber-500/40 rounded-xl p-2.5">
+                        <div class="font-black text-amber-400 text-sm">SSR</div>
+                        <div class="font-bold text-white text-base mt-0.5">3.00%</div>
+                        <div class="text-[10px] text-amber-200/70">개별 0.75%</div>
+                    </div>
+                    <div class="bg-purple-500/10 border border-purple-500/40 rounded-xl p-2.5">
+                        <div class="font-black text-purple-400 text-sm">SR</div>
+                        <div class="font-bold text-white text-base mt-0.5">15.00%</div>
+                        <div class="text-[10px] text-purple-200/70">개별 2.50%</div>
+                    </div>
+                    <div class="bg-sky-500/10 border border-sky-500/40 rounded-xl p-2.5">
+                        <div class="font-black text-sky-400 text-sm">R</div>
+                        <div class="font-bold text-white text-base mt-0.5">82.00%</div>
+                        <div class="text-[10px] text-sky-200/70">개별 13.67%</div>
+                    </div>
+                </div>
+
+                <!-- 특수 보장 규칙 -->
+                <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 space-y-1.5 text-slate-300">
+                    <div class="font-bold text-indigo-300"><i class="fa-solid fa-shield-halved mr-1"></i> 확정 보장 시스템</div>
+                    <p>• <strong class="text-amber-300">80회 천장 시스템:</strong> 79회 연속 SSR 미획득 시, 80회째 소환에서 반드시 SSR 영웅 1명이 확정 등장합니다. (SSR 획득 시 카운트 초기화)</p>
+                    <p>• <strong class="text-purple-300">10회 연속 소환 보정:</strong> 10회 연속 소환 시 10번째 슬롯에서 SR 이상(SR 97% / SSR 3%) 영웅이 최소 1명 확정 등장합니다.</p>
+                </div>
+
+                <!-- 전체 캐릭터 개별 확률표 -->
+                <div>
+                    <div class="font-bold text-slate-200 mb-2">개별 영웅 등장 확률표</div>
+                    <div id="rate-table-list" class="divide-y divide-slate-800 border border-slate-800 rounded-xl overflow-hidden">
+                        <!-- JS로 자동 생성 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 3: 영웅 상세 정보 팝업 -->
+    <!-- ===================================================================== -->
+    <div id="hero-detail-modal" class="fixed inset-0 z-40 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div id="hero-detail-card" class="bg-slate-900 border-2 border-amber-500/50 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative text-center">
+            <button onclick="closeModal('hero-detail-modal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="hero-detail-content">
+                <!-- JS로 동적 렌더링 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 4: 데이터 초기화 확인 (alert/confirm 대체 커스텀 모달) -->
+    <!-- ===================================================================== -->
+    <div id="reset-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-rose-500/40 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
+            <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">소환 기록을 초기화할까요?</h3>
+            <p class="text-xs text-slate-400 mt-1 mb-5">보유 중인 모든 영웅 도감, 천장 스택이 초기화되며 초기 재화(보석 3,200개, 티켓 10장)가 지급됩니다.</p>
+            <div class="flex gap-2">
+                <button onclick="closeModal('reset-modal')" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition">취소</button>
+                <button onclick="confirmResetData()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition">초기화 실행</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 알림 영역 -->
+    <div id="toast-container" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4"></div>
+
+    <!-- ===================================================================== -->
+    <!-- JavaScript 게임 로직 및 Web Audio API 사운드 엔진 -->
+    <!-- ===================================================================== -->
+    <script>
+        /**
+         * 1. 영웅 데이터베이스 정의 (총 16종: SSR 4종, SR 6종, R 6종)
+         */
+        const HERO_POOL = [
+            // SSR 등급 (4종 - 총 3%, 개별 0.75%)
+            { id: 'ssr_1', name: '성녀 셀레스티아', title: '여명의 빛을 품은 자', rarity: 'SSR', element: '빛', icon: '👑', desc: '천상의 성좌를 다스리는 대성녀. 아군 전체에 불멸의 축복과 찬란한 광휘를 내립니다.' },
+            { id: 'ssr_2', name: '적룡제 이그니스', title: '태초의 불꽃 군주', rarity: 'SSR', element: '화염', icon: '🐉', desc: '심연의 화산에서 깨어난 고대 용족의 왕. 모든 것을 재로 만드는 업화의 숨결을 내뿜습니다.' },
+            { id: 'ssr_3', name: '시공의 마녀 녹스', title: '은하의 경계 관측자', rarity: 'SSR', element: '공허', icon: '🌌', desc: '차원의 틈새를 넘나드는 대마도사. 적의 시간을 정지시키고 허공의 유성을 떨어뜨립니다.' },
+            { id: 'ssr_4', name: '뇌신 발키리 프레이야', title: '천둥을 가르는 창', rarity: 'SSR', element: '번개', icon: '⚡', desc: '폭풍우의 전장을 지배하는 전장의 여신. 빛보다 빠른 뇌격으로 적진을 꿰뚫습니다.' },
+
+            // SR 등급 (6종 - 총 15%, 개별 2.50%)
+            { id: 'sr_1', name: '은빛 기사 레온', title: '왕국의 수호 방패', rarity: 'SR', element: '빛', icon: '🛡️', desc: '백은 기사단의 단장. 강철 같은 신념으로 동료들을 모든 위협으로부터 지켜냅니다.' },
+            { id: 'sr_2', name: '빙결의 무희 세라', title: '만년설의 연꽃', rarity: 'SR', element: '얼음', icon: '❄️', desc: '얼어붙은 호수 위에서 춤추는 정령술사. 우아한 몸짓으로 전장을 빙하로 뒤덮습니다.' },
+            { id: 'sr_3', name: '그림자 암살자 카인', title: '월하의 단검', rarity: 'SR', element: '어둠', icon: '🗡️', desc: '달빛조차 닿지 않는 어둠 속에서 움직이는 암살자. 소리 없이 표적의 숨통을 끊습니다.' },
+            { id: 'sr_4', name: '연금술사 에밀리', title: '현자의 돌 연구가', rarity: 'SR', element: '자연', icon: '🧪', desc: '기묘한 영약과 폭탄을 다루는 천재 소녀. 예측 불가능한 실험 결과로 전세를 뒤집습니다.' },
+            { id: 'sr_5', name: '성운의 사수 아리아', title: '유성을 쏘는 활', rarity: 'SR', element: '바람', icon: '🏹', desc: '엘프 숲의 수호자. 바람의 정령과 공명하여 백 보 밖의 표적도 정확히 꿰뚫습니다.' },
+            { id: 'sr_6', name: '기계공학자 볼트', title: '강철 심장의 발명가', rarity: 'SR', element: '번개', icon: '⚙️', desc: '고대 유물을 개조해 만든 마도 병기를 조종하는 장인. 화력 지원의 핵심입니다.' },
+
+            // R 등급 (6종 - 총 82%, 개별 13.67%)
+            { id: 'r_1', name: '견습 검사 로이', title: '모험을 꿈꾸는 소년', rarity: 'R', element: '화염', icon: '⚔️', desc: '전설의 영웅을 동경하여 여행을 떠난 초보 검사. 성실함과 용기만큼은 누구에게도 지지 않습니다.' },
+            { id: 'r_2', name: '숲의 정령 피피', title: '작은 이슬의 요정', rarity: 'R', element: '자연', icon: '🌿', desc: '고대 숲의 맑은 이슬에서 태어난 작은 정령. 지친 여행자들에게 상쾌한 기운을 불어넣습니다.' },
+            { id: 'r_3', name: '왕국 수비병 마크', title: '성문의 파수꾼', rarity: 'R', element: '대지', icon: '🪖', desc: '수도 성문을 지키는 베테랑 병사. 묵묵히 자신의 자리를 지키는 든든한 버팀목입니다.' },
+            { id: 'r_4', name: '마법학교 우등생 루나', title: '별빛 도서관의 사서', rarity: 'R', element: '빛', icon: '📖', desc: '고대 마도서를 탐독하는 성실한 견습 마법사. 기초 마법의 정석이라 불립니다.' },
+            { id: 'r_5', name: '황야의 정찰병 잭', title: '바람을 읽는 척후', rarity: 'R', element: '바람', icon: '🧭', desc: '거친 황야의 지리를 꿰뚫고 있는 길잡이. 위험을 감지하는 직감이 뛰어납니다.' },
+            { id: 'r_6', name: '초보 치유사 미나', title: '기도하는 수녀', rarity: 'R', element: '빛', icon: '🕊️', desc: '작은 성당에서 상처 입은 이들을 돌보는 온화한 치유사. 따스한 빛의 기도를 올립니다.' }
+        ];
+
+        const SINGLE_COST = 160;
+        const MULTI_COST = 1600;
+        const PITY_MAX = 80;
+
+        /**
+         * 2. 게임 상태 관리 (LocalStorage 연동)
+         */
+        let gameState = {
+            gems: 3200,
+            tickets: 10,
+            pity: 0,           // 현재 천장 스택 (0 ~ 79)
+            totalPulls: 0,     // 누적 총 뽑기 횟수
+            inventory: {},     // { heroId: count }
+            muted: false
+        };
+
+        let currentFilter = 'ALL';
+        let currentPullResults = [];
+        let animTimer = null;
+        let isAnimating = false;
+
+        function loadGameState() {
+            try {
+                const saved = localStorage.getItem('astral_gacha_save_v1');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    gameState = { ...gameState, ...parsed };
+                }
+            } catch (e) {
+                console.warn('저장 데이터 로드 실패:', e);
+            }
+        }
+
+        function saveGameState() {
+            try {
+                localStorage.setItem('astral_gacha_save_v1', JSON.stringify(gameState));
+            } catch (e) {
+                console.warn('저장 데이터 기록 실패:', e);
+            }
+        }
+
+        /**
+         * 3. Web Audio API 사운드 합성기 (외부 음원 없이 깔끔한 효과음 생성)
+         */
+        const SoundEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playTone(freq, type = 'sine', duration = 0.2, volume = 0.15, delay = 0) {
+                if (gameState.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime + delay;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + duration + 0.05);
+            },
+            click() {
+                this.playTone(680, 'sine', 0.08, 0.1);
+            },
+            summonStart() {
+                // 상승하는 아르페지오
+                const notes = [330, 440, 554.37, 659.25, 880];
+                notes.forEach((n, idx) => {
+                    this.playTone(n, 'triangle', 0.35, 0.12, idx * 0.09);
+                });
+            },
+            revealR() {
+                this.playTone(523.25, 'sine', 0.25, 0.12);
+            },
+            revealSR() {
+                this.playTone(587.33, 'triangle', 0.3, 0.15, 0);
+                this.playTone(880, 'triangle', 0.45, 0.15, 0.08);
+            },
+            revealSSR() {
+                // 화려한 금빛 팡파레 화음
+                const chord = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                chord.forEach((freq, idx) => {
+                    this.playTone(freq, 'triangle', 0.85, 0.16, idx * 0.06);
+                });
+            },
+            coin() {
+                this.playTone(987.77, 'sine', 0.12, 0.12, 0);
+                this.playTone(1318.51, 'sine', 0.25, 0.12, 0.07);
+            }
+        };
+
+        function toggleMute() {
+            gameState.muted = !gameState.muted;
+            saveGameState();
+            updateSoundIcon();
+            if (!gameState.muted) SoundEngine.click();
+            showToast(gameState.muted ? '효과음이 음소거되었습니다.' : '효과음이 활성화되었습니다.');
+        }
+
+        function updateSoundIcon() {
+            const icon = document.getElementById('sound-icon');
+            if (gameState.muted) {
+                icon.className = 'fa-solid fa-volume-xmark text-xs sm:text-sm text-rose-400';
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-xs sm:text-sm text-indigo-300';
+            }
+        }
+
+        /**
+         * 4. UI 업데이트 함수들
+         */
+        function updateUI() {
+            document.getElementById('gem-count').textContent = gameState.gems.toLocaleString();
+            document.getElementById('ticket-count').textContent = gameState.tickets.toLocaleString();
+
+            // 천장 UI 업데이트
+            const remainPity = PITY_MAX - gameState.pity;
+            document.getElementById('pity-text').textContent = `${remainPity}회 남음`;
+            document.getElementById('pity-bar').style.width = `${(gameState.pity / PITY_MAX) * 100}%`;
+            document.getElementById('total-pulls-text').textContent = gameState.totalPulls.toLocaleString();
+
+            // 1회 / 10회 비용 버튼 표시 (티켓 우선 소모)
+            const cost1El = document.getElementById('cost-1-display');
+            if (gameState.tickets >= 1) {
+                cost1El.innerHTML = `<i class="fa-solid fa-ticket text-cyan-400"></i><span class="text-cyan-200">1</span>`;
+            } else {
+                cost1El.innerHTML = `<i class="fa-solid fa-gem text-amber-400"></i><span class="text-amber-200">${SINGLE_COST}</span>`;
+            }
+
+            const cost10El = document.getElementById('cost-10-display');
+            if (gameState.tickets >= 10) {
+                cost10El.innerHTML = `<i class="fa-solid fa-ticket text-cyan-400"></i><span>10</span>`;
+            } else {
+                cost10El.innerHTML = `<i class="fa-solid fa-gem text-amber-400"></i><span>${MULTI_COST.toLocaleString()}</span>`;
+            }
+
+            // 도감 수집률 계산
+            const ownedCount = Object.keys(gameState.inventory).length;
+            const totalCount = HERO_POOL.length;
+            const percent = Math.round((ownedCount / totalCount) * 100);
+            document.getElementById('codex-badge').textContent = `${percent}%`;
+            document.getElementById('codex-fraction').textContent = `${ownedCount} / ${totalCount} (${percent}%)`;
+            document.getElementById('codex-progress-bar').style.width = `${percent}%`;
+
+            renderCodex();
+        }
+
+        function switchTab(tabName) {
+            SoundEngine.click();
+            const summonView = document.getElementById('view-summon');
+            const codexView = document.getElementById('view-codex');
+            const tabSummon = document.getElementById('tab-summon');
+            const tabCodex = document.getElementById('tab-codex');
+
+            if (tabName === 'summon') {
+                summonView.classList.remove('hidden');
+                codexView.classList.add('hidden');
+                tabSummon.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition';
+                tabCodex.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition';
+            } else {
+                summonView.classList.add('hidden');
+                codexView.classList.remove('hidden');
+                tabCodex.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition';
+                tabSummon.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition';
+                renderCodex();
+            }
+        }
+
+        /**
+         * 5. 핵심 가챠 확률 및 천장 알고리즘
+         */
+        function rollSingleHero(forceMinSR = false) {
+            gameState.pity += 1;
+            gameState.totalPulls += 1;
+
+            let chosenRarity = 'R';
+
+            // 80회 천장 도달 시 SSR 확정
+            if (gameState.pity >= PITY_MAX) {
+                chosenRarity = 'SSR';
+            } else {
+                const rand = Math.random() * 100; // 0 ~ 100
+                if (rand < 3.0) {
+                    chosenRarity = 'SSR';
+                } else if (rand < 18.0 || forceMinSR) {
+                    // 3% ~ 18% (15% 확률) 또는 10연차 보정 시 최소 SR 이상
+                    chosenRarity = 'SR';
+                } else {
+                    chosenRarity = 'R';
+                }
+            }
+
+            // SSR 획득 시 천장 스택 초기화
+            if (chosenRarity === 'SSR') {
+                gameState.pity = 0;
+            }
+
+            const candidates = HERO_POOL.filter(h => h.rarity === chosenRarity);
+            const hero = candidates[Math.floor(Math.random() * candidates.length)];
+            return hero;
+        }
+
+        function performGacha(count) {
+            if (isAnimating) return;
+
+            // 재화 확인 및 차감 (티켓 우선 소모)
+            if (count === 1) {
+                if (gameState.tickets >= 1) {
+                    gameState.tickets -= 1;
+                } else if (gameState.gems >= SINGLE_COST) {
+                    gameState.gems -= SINGLE_COST;
+                } else {
+                    SoundEngine.click();
+                    showToast('성정석 또는 티켓이 부족합니다! 무료 충전소를 이용해주세요.', 'error');
+                    openChargeModal();
+                    return;
+                }
+            } else if (count === 10) {
+                if (gameState.tickets >= 10) {
+                    gameState.tickets -= 10;
+                } else if (gameState.gems >= MULTI_COST) {
+                    gameState.gems -= MULTI_COST;
+                } else {
+                    SoundEngine.click();
+                    showToast('성정석 1,600개 또는 티켓 10장이 필요합니다!', 'error');
+                    openChargeModal();
+                    return;
+                }
+            }
+
+            // 뽑기 실행
+            const results = [];
+            let hasSRorHigher = false;
+
+            for (let i = 0; i < count; i++) {
+                // 10회 뽑기의 마지막(10번째) 슬롯인데 아직 SR 이상이 안 나왔다면 강제 보정
+                const isLastOfMulti = (count === 10 && i === 9 && !hasSRorHigher);
+                const hero = rollSingleHero(isLastOfMulti);
+                if (hero.rarity === 'SSR' || hero.rarity === 'SR') {
+                    hasSRorHigher = true;
+                }
+
+                // 신규 획득 여부 판별 후 인벤토리 반영
+                const prevCount = gameState.inventory[hero.id] || 0;
+                gameState.inventory[hero.id] = prevCount + 1;
+
+                results.push({
+                    ...hero,
+                    isNew: prevCount === 0,
+                    dupeLevel: prevCount // 0이면 신규, 1 이상이면 +1 돌파
+                });
+            }
+
+            currentPullResults = results;
+            saveGameState();
+            updateUI();
+
+            // 화려한 소환 연출 시작
+            startSummonAnimation(results);
+        }
+
+        /**
+         * 6. 소환 연출 애니메이션 및 카드 공개 로직
+         */
+        function startSummonAnimation(results) {
+            isAnimating = true;
+            SoundEngine.summonStart();
+
+            const overlay = document.getElementById('summon-overlay');
+            const animStage = document.getElementById('summon-anim-stage');
+            const resultStage = document.getElementById('summon-result-stage');
+            const circleSvg = document.getElementById('summon-circle-svg');
+            const meteorStar = document.getElementById('meteor-star');
+            const shockwave = document.getElementById('shockwave-ring');
+            const hintText = document.getElementById('summon-grade-hint');
+
+            overlay.classList.remove('hidden');
+            animStage.classList.remove('hidden');
+            resultStage.classList.add('hidden');
+
+            // 최고 등급 판별
+            const hasSSR = results.some(r => r.rarity === 'SSR');
+            const hasSR = results.some(r => r.rarity === 'SR');
+
+            // 등급별 빛 색상 설정
+            let colorClass = 'text-sky-400';
+            let meteorGlow = 'bg-sky-300 shadow-[0_0_45px_18px_#38bdf8]';
+            let shockBorder = 'border-sky-400';
+            let label = 'ASTRAL LIGHT';
+
+            if (hasSSR) {
+                colorClass = 'text-amber-400';
+                meteorGlow = 'bg-amber-200 shadow-[0_0_60px_25px_#facc15]';
+                shockBorder = 'border-amber-400';
+                label = '✦ CELESTIAL RAINBOW ✦';
+            } else if (hasSR) {
+                colorClass = 'text-purple-400';
+                meteorGlow = 'bg-purple-200 shadow-[0_0_50px_20px_#c084fc]';
+                shockBorder = 'border-purple-400';
+                label = '✧ ARCANE VIOLET ✧';
+            }
+
+            // 애니메이션 클래스 리셋 후 재적용
+            circleSvg.setAttribute('class', `w-72 h-72 sm:w-96 sm:h-96 ${colorClass} animate-spin-fast transition-colors duration-500`);
+            hintText.textContent = label;
+            hintText.className = `absolute font-fantasy font-black text-xl sm:text-3xl tracking-widest ${colorClass} drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] animate-pulse text-center px-4`;
+
+            meteorStar.className = `w-6 h-6 rounded-full ${meteorGlow}`;
+            shockwave.className = `absolute w-32 h-32 rounded-full border-4 ${shockBorder} opacity-0`;
+
+            void meteorStar.offsetWidth; // Reflow 강제
+            meteorStar.classList.add('meteor-anim');
+
+            setTimeout(() => {
+                void shockwave.offsetWidth;
+                shockwave.classList.add('shockwave-anim');
+                if (hasSSR) SoundEngine.revealSSR();
+                else if (hasSR) SoundEngine.revealSR();
+                else SoundEngine.revealR();
+            }, 950);
+
+            // 1.9초 뒤 카드 공개 화면으로 전환
+            animTimer = setTimeout(() => {
+                showResultCards();
+            }, 1900);
+        }
+
+        function skipAnimation() {
+            if (animTimer) {
+                clearTimeout(animTimer);
+                animTimer = null;
+            }
+            showResultCards();
+        }
+
+        function showResultCards() {
+            const animStage = document.getElementById('summon-anim-stage');
+            const resultStage = document.getElementById('summon-result-stage');
+            const grid = document.getElementById('result-cards-grid');
+
+            animStage.classList.add('hidden');
+            resultStage.classList.remove('hidden');
+
+            // 1회 뽑기 vs 10회 뽑기 그리드 열 수 조정
+            if (currentPullResults.length === 1) {
+                grid.className = 'w-full flex justify-center py-4';
+            } else {
+                grid.className = 'w-full grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 justify-items-center';
+            }
+
+            grid.innerHTML = '';
+
+            currentPullResults.forEach((hero, index) => {
+                const isSingle = currentPullResults.length === 1;
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = `perspective-1000 ${isSingle ? 'w-44 h-64 sm:w-52 sm:h-72' : 'w-full max-w-[165px] h-48 sm:h-56'} cursor-pointer`;
+                cardWrapper.dataset.flipped = 'false';
+
+                // 등급별 스타일 지정
+                let backBorder = 'border-sky-500/50 from-slate-900 to-sky-950/60';
+                let frontStyle = 'border-sky-400 bg-gradient-to-b from-slate-900 via-sky-950/80 to-slate-950 glow-blue';
+                let badgeStyle = 'bg-sky-500 text-slate-950';
+
+                if (hero.rarity === 'SSR') {
+                    backBorder = 'border-amber-400 from-slate-900 via-amber-950/60 to-purple-950/60 ssr-rainbow';
+                    frontStyle = 'border-amber-300 bg-gradient-to-b from-amber-950/90 via-purple-950/80 to-slate-950 ssr-rainbow holo-shimmer';
+                    badgeStyle = 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950';
+                } else if (hero.rarity === 'SR') {
+                    backBorder = 'border-purple-400/70 from-slate-900 to-purple-950/60';
+                    frontStyle = 'border-purple-400 bg-gradient-to-b from-purple-950/90 via-slate-900 to-slate-950 glow-purple';
+                    badgeStyle = 'bg-purple-500 text-white';
+                }
+
+                cardWrapper.innerHTML = `
+                    <div class="card-inner relative w-full h-full preserve-3d">
+                        <!-- 카드 뒷면 (미공개 상태) -->
+                        <div class="absolute inset-0 backface-hidden rounded-2xl border-2 bg-gradient-to-br ${backBorder} flex flex-col items-center justify-center p-3 shadow-xl">
+                            <div class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center mb-2">
+                                <i class="fa-solid fa-star text-white/60 text-lg animate-pulse"></i>
+                            </div>
+                            <span class="font-fantasy text-xs tracking-widest text-white/70 font-bold">${hero.rarity}</span>
+                            <span class="text-[10px] text-slate-400 mt-1">터치하여 공개</span>
+                        </div>
+
+                        <!-- 카드 앞면 (영웅 공개 상태) -->
+                        <div class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border-2 ${frontStyle} flex flex-col items-center justify-between p-3 shadow-2xl overflow-hidden">
+                            <div class="w-full flex items-center justify-between">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black ${badgeStyle}">${hero.rarity}</span>
+                                ${hero.isNew 
+                                    ? `<span class="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-black tracking-wider animate-bounce">NEW</span>`
+                                    : `<span class="px-1.5 py-0.5 rounded bg-slate-800/90 text-amber-300 border border-amber-500/40 text-[9px] font-bold">+${hero.dupeLevel} 돌파</span>`
+                                }
+                            </div>
+
+                            <div class="my-auto flex flex-col items-center">
+                                <div class="text-4xl sm:text-5xl drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)] mb-1.5">${hero.icon}</div>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-950/70 text-slate-300 border border-slate-700">${hero.element} 속성</span>
+                            </div>
+
+                            <div class="w-full text-center">
+                                <div class="font-extrabold text-xs sm:text-sm text-white truncate">${hero.name}</div>
+                                <div class="text-[10px] text-slate-400 truncate">${hero.title}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                cardWrapper.onclick = () => flipCard(cardWrapper, hero.rarity, true);
+                grid.appendChild(cardWrapper);
+
+                // 순차 자동 뒤집기 효과 (R, SR은 빠르게 자동 공개, SSR은 극적인 딜레이 후 공개)
+                const autoDelay = isSingle ? 350 : 250 + index * 130;
+                setTimeout(() => {
+                    if (cardWrapper.dataset.flipped === 'false') {
+                        flipCard(cardWrapper, hero.rarity, false);
+                    }
+                }, autoDelay);
+            });
+        }
+
+        function flipCard(cardWrapper, rarity, playSound = true) {
+            if (cardWrapper.dataset.flipped === 'true') return;
+            cardWrapper.dataset.flipped = 'true';
+            const inner = cardWrapper.querySelector('.card-inner');
+            inner.classList.add('rotate-y-180');
+
+            if (playSound) {
+                if (rarity === 'SSR') SoundEngine.revealSSR();
+                else if (rarity === 'SR') SoundEngine.revealSR();
+                else SoundEngine.revealR();
+            }
+        }
+
+        function revealAllCards() {
+            SoundEngine.click();
+            const cards = document.querySelectorAll('#result-cards-grid > div');
+            cards.forEach((card, idx) => {
+                if (card.dataset.flipped === 'false') {
+                    const rarity = currentPullResults[idx].rarity;
+                    flipCard(card, rarity, idx === 0);
+                }
+            });
+        }
+
+        function closeSummonOverlay() {
+            SoundEngine.click();
+            isAnimating = false;
+            document.getElementById('summon-overlay').classList.add('hidden');
+        }
+
+        /**
+         * 7. 영웅 도감 (인벤토리) 렌더링 및 필터
+         */
+        function filterCodex(rarity) {
+            SoundEngine.click();
+            currentFilter = rarity;
+
+            document.querySelectorAll('.codex-filter-btn').forEach(btn => {
+                if (btn.dataset.filter === rarity) {
+                    btn.className = 'codex-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white transition';
+                } else {
+                    btn.className = 'codex-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
+                }
+            });
+
+            renderCodex();
+        }
+
+        function renderCodex() {
+            const grid = document.getElementById('codex-grid');
+            if (!grid) return;
+
+            const filtered = HERO_POOL.filter(h => currentFilter === 'ALL' || h.rarity === currentFilter);
+            grid.innerHTML = '';
+
+            filtered.forEach(hero => {
+                const count = gameState.inventory[hero.id] || 0;
+                const isOwned = count > 0;
+                const breakthrough = count > 1 ? count - 1 : 0;
+
+                let cardBorder = 'border-slate-800 bg-slate-900/50';
+                let badgeClass = 'bg-slate-700 text-slate-300';
+
+                if (isOwned) {
+                    if (hero.rarity === 'SSR') {
+                        cardBorder = 'border-amber-400/80 bg-gradient-to-b from-amber-950/40 via-slate-900 to-slate-950 glow-gold';
+                        badgeClass = 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950';
+                    } else if (hero.rarity === 'SR') {
+                        cardBorder = 'border-purple-500/70 bg-gradient-to-b from-purple-950/40 via-slate-900 to-slate-950 glow-purple';
+                        badgeClass = 'bg-purple-500 text-white';
+                    } else {
+                        cardBorder = 'border-sky-500/50 bg-gradient-to-b from-sky-950/30 via-slate-900 to-slate-950';
+                        badgeClass = 'bg-sky-500 text-slate-950';
+                    }
+                }
+
+                const card = document.createElement('div');
+                card.className = `rounded-2xl border p-3.5 flex flex-col justify-between transition transform hover:-translate-y-1 cursor-pointer relative overflow-hidden ${cardBorder} ${!isOwned ? 'opacity-55 grayscale' : ''}`;
+                card.onclick = () => openHeroDetail(hero, count);
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-black ${badgeClass}">${hero.rarity}</span>
+                        ${isOwned 
+                            ? (breakthrough > 0 
+                                ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[10px] font-extrabold">+${breakthrough} 돌파</span>`
+                                : `<span class="text-[10px] text-emerald-400 font-bold">보유중</span>`)
+                            : `<span class="text-[10px] text-slate-500 font-semibold"><i class="fa-solid fa-lock mr-1"></i>미획득</span>`
+                        }
+                    </div>
+
+                    <div class="my-4 flex flex-col items-center text-center">
+                        <div class="text-4xl sm:text-5xl mb-2">${hero.icon}</div>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-950/80 text-slate-300 border border-slate-800">${hero.element}</span>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="font-bold text-sm text-white truncate">${hero.name}</div>
+                        <div class="text-[11px] text-slate-400 truncate">${hero.title}</div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        function openHeroDetail(hero, count) {
+            SoundEngine.click();
+            const content = document.getElementById('hero-detail-content');
+            const breakthrough = count > 1 ? count - 1 : 0;
+
+            let rarityColor = 'text-sky-400';
+            if (hero.rarity === 'SSR') rarityColor = 'text-amber-400';
+            else if (hero.rarity === 'SR') rarityColor = 'text-purple-400';
+
+            content.innerHTML = `
+                <div class="inline-block px-3 py-1 rounded-full bg-slate-950 border border-slate-700 text-xs font-black ${rarityColor} mb-2">
+                    ${hero.rarity} 등급 · ${hero.element} 속성
+                </div>
+                <div class="text-6xl my-3 drop-shadow-lg">${hero.icon}</div>
+                <h4 class="text-xl font-black text-white">${hero.name}</h4>
+                <p class="text-xs text-indigo-300 font-medium mb-3">${hero.title}</p>
+                <p class="text-xs text-slate-300 bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5 leading-relaxed mb-4">
+                    ${hero.desc}
+                </p>
+                <div class="flex items-center justify-around bg-slate-950/60 rounded-xl p-2.5 border border-slate-800 text-xs">
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">보유 수량</span>
+                        <span class="font-bold text-white">${count}명</span>
+                    </div>
+                    <div class="h-6 w-[1px] bg-slate-800"></div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">한계 돌파</span>
+                        <span class="font-bold text-amber-400">${count > 0 ? `+${breakthrough} 단계` : '미보유'}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('hero-detail-modal').classList.remove('hidden');
+        }
+
+        /**
+         * 8. 모달 관리 & 무료 재화 충전 시뮬레이션
+         */
+        function openChargeModal() {
+            SoundEngine.click();
+            document.getElementById('charge-modal').classList.remove('hidden');
+        }
+
+        function openRateModal() {
+            SoundEngine.click();
+            renderRateTable();
+            document.getElementById('rate-modal').classList.remove('hidden');
+        }
+
+        function openResetModal() {
+            SoundEngine.click();
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            SoundEngine.click();
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function addCurrency(gems, tickets) {
+            SoundEngine.coin();
+            gameState.gems += gems;
+            gameState.tickets += tickets;
+            saveGameState();
+            updateUI();
+
+            if (gems > 0) showToast(`성정석 ${gems.toLocaleString()}개가 충전되었습니다!`, 'success');
+            if (tickets > 0) showToast(`별의 소환 티켓 ${tickets}장이 지급되었습니다!`, 'success');
+        }
+
+        function simulateAdReward() {
+            const btn = document.getElementById('ad-sim-btn');
+            if (btn.disabled) return;
+
+            SoundEngine.click();
+            btn.disabled = true;
+            let sec = 3;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>시청 중 (${sec}s)</span>`;
+
+            const interval = setInterval(() => {
+                sec -= 1;
+                if (sec > 0) {
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>시청 중 (${sec}s)</span>`;
+                } else {
+                    clearInterval(interval);
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-play"></i><span>광고 보기</span>`;
+                    addCurrency(8000, 0);
+                }
+            }, 1000);
+        }
+
+        function confirmResetData() {
+            gameState = {
+                gems: 3200,
+                tickets: 10,
+                pity: 0,
+                totalPulls: 0,
+                inventory: {},
+                muted: gameState.muted
+            };
+            saveGameState();
+            updateUI();
+            closeModal('reset-modal');
+            showToast('모든 소환 데이터와 도감이 초기화되었습니다.');
+        }
+
+        function renderRateTable() {
+            const list = document.getElementById('rate-table-list');
+            list.innerHTML = HERO_POOL.map(hero => {
+                let rate = '13.67%';
+                let color = 'text-sky-400';
+                if (hero.rarity === 'SSR') { rate = '0.75%'; color = 'text-amber-400 font-bold'; }
+                else if (hero.rarity === 'SR') { rate = '2.50%'; color = 'text-purple-400 font-semibold'; }
+
+                return `
+                    <div class="flex items-center justify-between px-3 py-2 bg-slate-950/60">
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-[11px] w-8 ${color}">${hero.rarity}</span>
+                            <span>${hero.icon}</span>
+                            <span class="text-slate-200">${hero.name}</span>
+                        </div>
+                        <span class="tabular-nums ${color}">${rate}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * 9. 토스트 알림 메시지
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let borderStyle = 'border-indigo-500/60 bg-slate-900/95 text-slate-100';
+            let icon = 'fa-circle-info text-indigo-400';
+
+            if (type === 'success') {
+                borderStyle = 'border-amber-400/70 bg-slate-900/95 text-amber-100';
+                icon = 'fa-sparkles text-amber-400';
+            } else if (type === 'error') {
+                borderStyle = 'border-rose-500/70 bg-slate-900/95 text-rose-100';
+                icon = 'fa-circle-exclamation text-rose-400';
+            }
+
+            toast.className = `px-4 py-2.5 rounded-2xl border shadow-2xl backdrop-blur-md text-xs font-bold flex items-center gap-2 transition-all duration-300 transform translate-y-2 opacity-0 ${borderStyle}`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // 초기 실행
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGameState();
+            updateSoundIcon();
+            updateUI();
+        });
+    </script>
+</body>
+</html>
