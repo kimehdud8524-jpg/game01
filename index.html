@@ -165,6 +165,12 @@
                     </button>
                 </div>
 
+                <!-- 별의 정수 (레벨업 재화) -->
+                <div class="flex items-center gap-2 bg-slate-900/90 border border-emerald-700/80 rounded-full px-3 py-1.5 shadow-inner" title="성좌 토벌전에서 획득하는 영웅 레벨업 재화">
+                    <i class="fa-solid fa-flask text-emerald-400 text-sm"></i>
+                    <span id="exp-potion-count" class="text-xs sm:text-sm font-bold text-emerald-100 tabular-nums">500</span>
+                </div>
+
                 <!-- 일러스트 등록 버튼 -->
                 <button onclick="openArtManagerModal()" class="px-3 py-1.5 rounded-full bg-pink-600/25 hover:bg-pink-600/40 border border-pink-500/50 text-pink-200 text-xs font-bold flex items-center gap-1.5 transition" title="캐릭터 일러스트 직접 등록/관리">
                     <i class="fa-solid fa-image"></i>
@@ -217,7 +223,17 @@
         
         <!-- 1. 별의 소환 (가챠) 뷰 -->
         <section id="view-summon" class="flex-1 flex flex-col gap-5">
-            <!-- 배너 선택 바 (한정 SSR 6종 + 상시 소환) -->
+            <!-- 배너 카테고리 전환 (영웅 픽업 / 전용 무기 뽑기) -->
+            <div class="flex items-center gap-2">
+                <button id="subtab-hero-banner" onclick="switchBannerCategory('hero')" class="px-4 py-1.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950 shadow transition">
+                    <i class="fa-solid fa-user-astronaut mr-1"></i>영웅 소환 배너
+                </button>
+                <button id="subtab-weapon-banner" onclick="switchBannerCategory('weapon')" class="px-4 py-1.5 rounded-full text-xs font-extrabold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-khanda mr-1 text-rose-400"></i>전용 무기 공명 배너
+                </button>
+            </div>
+
+            <!-- 배너 선택 바 (한정 SSR 6종 + 상시 소환 / 전용 무기 배너) -->
             <div id="banner-selector-bar" class="flex items-center gap-2 overflow-x-auto pb-1">
                 <!-- JS로 배너 버튼 렌더링 -->
             </div>
@@ -338,21 +354,21 @@
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-3 text-[11px] text-slate-400 space-y-1">
                         <div class="font-bold text-indigo-300"><i class="fa-solid fa-bolt mr-1"></i> 전투 & 성장 규칙</div>
-                        <p>• 보유 중인 영웅 최대 4명을 편성해 출격하며, 중복 소환으로 얻은 <strong class="text-amber-300">한계돌파(+수치)</strong>마다 공격력·체력이 18%씩 강해집니다.</p>
-                        <p>• 공격 시 게이지가 차오르며, 100%가 되면 고유 <strong class="text-rose-300">필살기</strong>를 발동할 수 있습니다. 승리 시 성정석과 티켓을 획득합니다!</p>
+                        <p>• 보유 중인 영웅 최대 4명을 편성해 출격하며, <strong class="text-emerald-300">레벨업</strong>과 <strong class="text-amber-300">한계돌파(최대 +6)</strong>, <strong class="text-rose-300">전용 무기 장착</strong>으로 전투력이 급상승합니다.</p>
+                        <p>• 토벌전 승리 시 성정석, 티켓과 함께 영웅 성장용 <strong class="text-emerald-300">별의 정수(EXP)</strong>를 획득합니다!</p>
                     </div>
                 </div>
 
-                <!-- 출격 파티 편성 (7칸) -->
+                <!-- 파티 편성 (7칸) -->
                 <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-3xl p-4 flex flex-col justify-between gap-3">
                     <div>
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                             <div>
                                 <h2 class="text-base font-extrabold text-white flex items-center gap-2">
-                                    <i class="fa-solid fa-users-rays text-cyan-400"></i>
-                                    <span>출격 파티 편성 (최대 4명)</span>
+                                    <i class="fa-solid fa-users-gear text-cyan-400"></i>
+                                    <span>출격 파티 편성 (최대 4인)</span>
                                 </h2>
-                                <p class="text-[11px] text-slate-400">아래 보유 영웅을 클릭하여 파티에 넣거나 뺄 수 있습니다.</p>
+                                <p class="text-[11px] text-slate-400">소환한 영웅을 선택하여 팀을 구성하세요. 레벨업과 돌파, 무기 장착으로 강해집니다.</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span id="party-power-text" class="text-xs font-black text-amber-300 bg-slate-950 border border-amber-500/30 px-3 py-1.5 rounded-xl">파티 전투력: 0</span>
@@ -466,18 +482,24 @@
                         <div class="text-xs text-slate-400">보유 SSR</div>
                         <div id="codex-ssr-count" class="text-lg font-black text-fuchsia-400">0명</div>
                     </div>
+                    <div class="h-8 w-px bg-slate-800"></div>
+                    <div>
+                        <div class="text-xs text-slate-400">보유 별의 정수</div>
+                        <div id="codex-exp-text" class="text-lg font-black text-emerald-400">500</div>
+                    </div>
                 </div>
 
-                <!-- 등급 필터 버튼 -->
-                <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                    <button onclick="filterCodex('ALL')" data-filter="ALL" class="codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition">전체</button>
+                <!-- 등급 및 무기고 필터 버튼 -->
+                <div class="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button onclick="filterCodex('ALL')" data-filter="ALL" class="codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition">전체 영웅</button>
                     <button onclick="filterCodex('SSR')" data-filter="SSR" class="codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-amber-300 transition">SSR</button>
                     <button onclick="filterCodex('SR')" data-filter="SR" class="codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-purple-300 transition">SR</button>
                     <button onclick="filterCodex('R')" data-filter="R" class="codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-sky-300 transition">R</button>
+                    <button onclick="filterCodex('WEAPONS')" data-filter="WEAPONS" class="codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-rose-300 hover:text-rose-200 transition">⚔️ 무기고</button>
                 </div>
             </div>
 
-            <!-- 영웅 그리드 -->
+            <!-- 영웅 / 무기 그리드 -->
             <div id="codex-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 pb-6">
                 <!-- JS로 동적 렌더링 -->
             </div>
@@ -487,13 +509,17 @@
     <!-- 소환 연출 & 결과 모달 오버레이 -->
     <div id="summon-overlay" class="fixed inset-0 z-50 hidden bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-between p-4 sm:p-8 overflow-y-auto">
         <!-- 상단 상태 표시 -->
-        <div class="w-full max-w-5xl flex items-center justify-between">
+        <div class="w-full max-w-5xl flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
                 <span id="summon-stage-badge" class="px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 text-xs font-bold">
                     성좌의 부름 응답 중...
                 </span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+                <button id="summon-again-btn" onclick="performGacha(lastSummonCount)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 border border-indigo-400/50 text-white font-extrabold text-xs sm:text-sm shadow-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span id="summon-again-text">10회 다시 뽑기</span>
+                </button>
                 <button id="reveal-all-btn" onclick="revealAllCards()" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg transition">
                     <i class="fa-solid fa-bolt mr-1"></i> 모두 공개
                 </button>
@@ -606,17 +632,23 @@
                 <div class="p-3.5 rounded-2xl bg-slate-950 border border-amber-500/30 space-y-1.5">
                     <div class="font-bold text-amber-300 text-sm">★ SSR (5성 최고등급) — 기본 확률 2.0%</div>
                     <p>• <strong class="text-white">소프트 천장:</strong> 70회부터 매 회당 SSR 출현 확률이 +8%씩 급증하며, <strong>80회째 100% 확정</strong> 출현합니다.</p>
-                    <p>• <strong class="text-white">픽업 50/50 시스템:</strong> 한정 소환에서 SSR 획득 시 50% 확률로 픽업 캐릭터가 등장합니다. 픽업이 아닌 상시 SSR이 나왔다면, <strong>다음 SSR은 100% 픽업 캐릭터</strong>로 확정됩니다.</p>
+                    <p>• <strong class="text-white">픽업 50/50 시스템:</strong> 한정 소환에서 SSR 획득 시 50% 확률로 픽업 영웅/무기가 등장합니다. 픽업이 아닌 상시 SSR이 나왔다면, <strong>다음 SSR은 100% 픽업</strong>으로 확정됩니다.</p>
+                    <p>• <strong class="text-white">한계돌파 (최대 +6돌파):</strong> 동일 영웅/무기 중복 획득 시 최대 +6돌파까지 스탯이 상승하며, 초과분은 성정석으로 자동 환급됩니다.</p>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-950 border border-rose-500/30 space-y-1.5">
+                    <div class="font-bold text-rose-300 text-sm">⚔️ 전용 무기 공명 & 상시 무기고</div>
+                    <p>• 각 한정 SSR 영웅의 전용 무기를 뽑아 장착하면 기본 스탯 증가와 함께 <strong class="text-amber-200">전용 캐릭터 장착 시 추가 보너스(+25%)</strong>가 적용됩니다.</p>
                 </div>
 
                 <div class="p-3.5 rounded-2xl bg-slate-950 border border-purple-500/30 space-y-1.5">
                     <div class="font-bold text-purple-300 text-sm">◆ SR (4성 정예등급) — 기본 확률 13.0%</div>
-                    <p>• 10회 연속 소환 시 또는 10회 누적 시 최소 1명 이상의 SR 등급 이상 영웅이 확정 출현합니다.</p>
+                    <p>• 10회 연속 소환 시 또는 10회 누적 시 최소 1명 이상의 SR 등급 이상 영웅/무기가 확정 출현합니다.</p>
                 </div>
 
                 <div class="p-3.5 rounded-2xl bg-slate-950 border border-sky-500/30 space-y-1.5">
                     <div class="font-bold text-sky-300 text-sm">● R (3성 일반등급) — 기본 확률 85.0%</div>
-                    <p>• 모험의 기초가 되는 다양한 속성의 영웅들입니다. 중복 획득 시 도감 한계돌파 레벨이 상승합니다.</p>
+                    <p>• 모험의 기초가 되는 다양한 속성의 영웅 및 기본 무구들입니다.</p>
                 </div>
             </div>
         </div>
@@ -789,14 +821,46 @@
         ];
 
         /**
-         * 2. 배너 설정 (한정 SSR 6종 + 상시 소환)
+         * 1-2. 무기 데이터베이스 (한정 SSR 전용 무기 6종 + 상시 SSR 3종 + 상시 SR 4종 + 상시 R 4종)
+         */
+        const WEAPON_POOL = [
+            // 한정 캐릭터별 전용 무기 (SSR 6종)
+            { id: 'wpn_lim_1', name: '천상의 성홀 · 루미나', title: '셀레스티아 전용 성물', rarity: 'SSR', element: '빛', icon: '🪄', limited: true, ownerHeroId: 'lim_1', atkBonus: 340, hpBonus: 950, desc: '성녀 셀레스티아의 신성력을 극대화하는 태초의 성홀. 전용 장착 시 모든 능력치 +25%.' },
+            { id: 'wpn_lim_2', name: '홍련의 마룡검 · 라그나', title: '이그니스 전용 대검', rarity: 'SSR', element: '화염', icon: '🗡️', limited: true, ownerHeroId: 'lim_2', atkBonus: 420, hpBonus: 680, desc: '적룡제의 업화가 깃든 거대한 용혈검. 전용 장착 시 모든 능력치 +25%.' },
+            { id: 'wpn_lim_3', name: '은하의 천체구 · 크로노스', title: '녹스 전용 마도구', rarity: 'SSR', element: '공허', icon: '🪐', limited: true, ownerHeroId: 'lim_3', atkBonus: 400, hpBonus: 740, desc: '시공의 궤적을 조율하는 시공의 마녀 녹스의 비보. 전용 장착 시 모든 능력치 +25%.' },
+            { id: 'wpn_lim_4', name: '천둥의 신창 · 궁니르', title: '프레이야 전용 신창', rarity: 'SSR', element: '번개', icon: '🔱', limited: true, ownerHeroId: 'lim_4', atkBonus: 410, hpBonus: 710, desc: '뇌신 발키리 프레이야가 휘두르는 필중의 번개 창. 전용 장착 시 모든 능력치 +25%.' },
+            { id: 'wpn_lim_5', name: '절대영도의 왕홀 · 글라시아', title: '아스트리드 전용 왕홀', rarity: 'SSR', element: '얼음', icon: '❄️', limited: true, ownerHeroId: 'lim_5', atkBonus: 385, hpBonus: 820, desc: '빙해의 여제 아스트리드의 만년빙이 응축된 왕홀. 전용 장착 시 모든 능력치 +25%.' },
+            { id: 'wpn_lim_6', name: '황혼의 칠흑도 · 이클립스', title: '카이저 전용 태도', rarity: 'SSR', element: '어둠', icon: '⚔️', limited: true, ownerHeroId: 'lim_6', atkBonus: 430, hpBonus: 650, desc: '황혼의 검성 카이저의 발도술에 공명하는 마검. 전용 장착 시 모든 능력치 +25%.' },
+
+            // 기본 상시 SSR 무기 (3종)
+            { id: 'wpn_std_1', name: '성좌의 천공검', title: '상시 전설 무구', rarity: 'SSR', element: '무속성', icon: '✨', limited: false, atkBonus: 330, hpBonus: 650, desc: '별빛이 벼려낸 고대의 명검. 어떤 영웅이든 높은 전투력을 발휘합니다.' },
+            { id: 'wpn_std_2', name: '현자의 아스트랄 스태프', title: '상시 전설 무구', rarity: 'SSR', element: '무속성', icon: '🔮', limited: false, atkBonus: 310, hpBonus: 780, desc: '마력의 순환을 증폭시키는 대현자의 지팡이.' },
+            { id: 'wpn_std_3', name: '불멸의 수호 방패창', title: '상시 전설 무구', rarity: 'SSR', element: '무속성', icon: '🛡️', limited: false, atkBonus: 280, hpBonus: 920, desc: '강력한 방어력과 반격력을 동시에 제공하는 왕실의 비보.' },
+
+            // 기본 상시 SR 무기 (4종)
+            { id: 'wpn_sr_1', name: '백은의 기사검', title: '정예 무구', rarity: 'SR', element: '무속성', icon: '🗡️', limited: false, atkBonus: 190, hpBonus: 420, desc: '왕국 기사단 정예 대원에게 지급되는 정교한 장검.' },
+            { id: 'wpn_sr_2', name: '비전의 수정 지팡이', title: '정예 무구', rarity: 'SR', element: '무속성', icon: '🪄', limited: false, atkBonus: 205, hpBonus: 380, desc: '순도 높은 마나 수정을 세공한 마도사의 지팡이.' },
+            { id: 'wpn_sr_3', name: '질풍의 사냥활', title: '정예 무구', rarity: 'SR', element: '무속성', icon: '🏹', limited: false, atkBonus: 215, hpBonus: 350, desc: '바람의 가호가 깃들어 시위를 당기기 쉬운 명궁.' },
+            { id: 'wpn_sr_4', name: '수호자의 강철 방패', title: '정예 무구', rarity: 'SR', element: '무속성', icon: '🛡️', limited: false, atkBonus: 160, hpBonus: 540, desc: '거센 충격도 끄떡없이 받아내는 중장갑 방패.' },
+
+            // 기본 상시 R 무기 (4종)
+            { id: 'wpn_r_1', name: '수련용 철검', title: '기본 무구', rarity: 'R', element: '무속성', icon: '⚔️', limited: false, atkBonus: 95, hpBonus: 200, desc: '모험가들이 가장 먼저 손에 쥐는 튼튼한 철제 검.' },
+            { id: 'wpn_r_2', name: '참나무 마법봉', title: '기본 무구', rarity: 'R', element: '무속성', icon: '🪵', limited: false, atkBonus: 105, hpBonus: 180, desc: '기초 마법을 안정적으로 이끌어내는 나무 지팡이.' },
+            { id: 'wpn_r_3', name: '가죽 사냥단궁', title: '기본 무구', rarity: 'R', element: '무속성', icon: '🏹', limited: false, atkBonus: 110, hpBonus: 170, desc: '가볍고 다루기 편한 정찰병용 단궁.' },
+            { id: 'wpn_r_4', name: '청동 버클러', title: '기본 무구', rarity: 'R', element: '무속성', icon: '⭕', limited: false, atkBonus: 80, hpBonus: 260, desc: '적의 공격을 흘려보내는 데 유용한 소형 방패.' }
+        ];
+
+        /**
+         * 2. 배너 설정 (영웅 한정 6종 + 상시 / 전용 무기 한정 6종 + 상시 무기고)
          */
         const BANNERS = {
+            // --- 영웅 배너 ---
             banner_lim_1: {
                 id: 'banner_lim_1',
+                category: 'hero',
                 type: 'limited',
                 shortName: '성녀 셀레스티아',
-                tag: '기간 한정 확률 UP · SSR 출현 시 50% 확률',
+                tag: '한정 영웅 확률 UP · SSR 출현 시 50% 확률',
                 titleHtml: '천상의 성녀 · <span class="text-amber-300">셀레스티아</span>',
                 heroId: 'lim_1',
                 gradient: 'from-indigo-950 via-slate-900 to-purple-950',
@@ -804,9 +868,10 @@
             },
             banner_lim_2: {
                 id: 'banner_lim_2',
+                category: 'hero',
                 type: 'limited',
                 shortName: '적룡제 이그니스',
-                tag: '기간 한정 확률 UP · SSR 출현 시 50% 확률',
+                tag: '한정 영웅 확률 UP · SSR 출현 시 50% 확률',
                 titleHtml: '홍련의 패왕 · <span class="text-rose-400">이그니스</span>',
                 heroId: 'lim_2',
                 gradient: 'from-rose-950 via-slate-900 to-amber-950',
@@ -814,9 +879,10 @@
             },
             banner_lim_3: {
                 id: 'banner_lim_3',
+                category: 'hero',
                 type: 'limited',
                 shortName: '시공의 마녀 녹스',
-                tag: '기간 한정 확률 UP · SSR 출현 시 50% 확률',
+                tag: '한정 영웅 확률 UP · SSR 출현 시 50% 확률',
                 titleHtml: '은하의 관찰자 · <span class="text-fuchsia-300">녹스</span>',
                 heroId: 'lim_3',
                 gradient: 'from-purple-950 via-slate-950 to-fuchsia-950',
@@ -824,9 +890,10 @@
             },
             banner_lim_4: {
                 id: 'banner_lim_4',
+                category: 'hero',
                 type: 'limited',
                 shortName: '뇌신 프레이야',
-                tag: '기간 한정 확률 UP · SSR 출현 시 50% 확률',
+                tag: '한정 영웅 확률 UP · SSR 출현 시 50% 확률',
                 titleHtml: '천둥의 전희 · <span class="text-sky-300">프레이야</span>',
                 heroId: 'lim_4',
                 gradient: 'from-sky-950 via-slate-900 to-indigo-950',
@@ -834,9 +901,10 @@
             },
             banner_lim_5: {
                 id: 'banner_lim_5',
+                category: 'hero',
                 type: 'limited',
                 shortName: '빙해의 아스트리드',
-                tag: '기간 한정 확률 UP · SSR 출현 시 50% 확률',
+                tag: '한정 영웅 확률 UP · SSR 출현 시 50% 확률',
                 titleHtml: '설원의 여제 · <span class="text-cyan-300">아스트리드</span>',
                 heroId: 'lim_5',
                 gradient: 'from-cyan-950 via-slate-900 to-blue-950',
@@ -844,9 +912,10 @@
             },
             banner_lim_6: {
                 id: 'banner_lim_6',
+                category: 'hero',
                 type: 'limited',
                 shortName: '황혼의 검성 카이저',
-                tag: '기간 한정 확률 UP · SSR 출현 시 50% 확률',
+                tag: '한정 영웅 확률 UP · SSR 출현 시 50% 확률',
                 titleHtml: '별을 가르는 무인 · <span class="text-violet-300">카이저</span>',
                 heroId: 'lim_6',
                 gradient: 'from-violet-950 via-slate-950 to-slate-900',
@@ -854,124 +923,188 @@
             },
             banner_standard: {
                 id: 'banner_standard',
+                category: 'hero',
                 type: 'standard',
                 shortName: '상시 별빛 소환',
-                tag: '상시 소환 · 모든 상시 SSR 영웅 균등 출현',
+                tag: '상시 영웅 소환 · 모든 상시 SSR 영웅 균등 출현',
                 titleHtml: '영원한 성좌의 부름 · <span class="text-cyan-300">상시 소환</span>',
                 heroId: 'std_1',
                 gradient: 'from-slate-900 via-indigo-950/60 to-slate-900',
                 border: 'border-cyan-500/40'
+            },
+
+            // --- 전용 무기 & 상시 무기 배너 ---
+            banner_wpn_1: {
+                id: 'banner_wpn_1',
+                category: 'weapon',
+                type: 'limited',
+                shortName: '셀레스티아 전용무기',
+                tag: '전용 무기 공명 · SSR 출현 시 50% 확률',
+                titleHtml: '천상의 성홀 · <span class="text-amber-300">루미나</span>',
+                weaponId: 'wpn_lim_1',
+                gradient: 'from-amber-950 via-slate-900 to-indigo-950',
+                border: 'border-amber-400/50'
+            },
+            banner_wpn_2: {
+                id: 'banner_wpn_2',
+                category: 'weapon',
+                type: 'limited',
+                shortName: '이그니스 전용무기',
+                tag: '전용 무기 공명 · SSR 출현 시 50% 확률',
+                titleHtml: '홍련의 마룡검 · <span class="text-rose-400">라그나</span>',
+                weaponId: 'wpn_lim_2',
+                gradient: 'from-rose-950 via-slate-950 to-orange-950',
+                border: 'border-rose-400/50'
+            },
+            banner_wpn_3: {
+                id: 'banner_wpn_3',
+                category: 'weapon',
+                type: 'limited',
+                shortName: '녹스 전용무기',
+                tag: '전용 무기 공명 · SSR 출현 시 50% 확률',
+                titleHtml: '은하의 천체구 · <span class="text-fuchsia-300">크로노스</span>',
+                weaponId: 'wpn_lim_3',
+                gradient: 'from-fuchsia-950 via-slate-950 to-purple-950',
+                border: 'border-fuchsia-400/50'
+            },
+            banner_wpn_4: {
+                id: 'banner_wpn_4',
+                category: 'weapon',
+                type: 'limited',
+                shortName: '프레이야 전용무기',
+                tag: '전용 무기 공명 · SSR 출현 시 50% 확률',
+                titleHtml: '천둥의 신창 · <span class="text-sky-300">궁니르</span>',
+                weaponId: 'wpn_lim_4',
+                gradient: 'from-sky-950 via-slate-950 to-cyan-950',
+                border: 'border-sky-400/50'
+            },
+            banner_wpn_5: {
+                id: 'banner_wpn_5',
+                category: 'weapon',
+                type: 'limited',
+                shortName: '아스트리드 전용무기',
+                tag: '전용 무기 공명 · SSR 출현 시 50% 확률',
+                titleHtml: '절대영도의 왕홀 · <span class="text-cyan-300">글라시아</span>',
+                weaponId: 'wpn_lim_5',
+                gradient: 'from-cyan-950 via-slate-950 to-indigo-950',
+                border: 'border-cyan-400/50'
+            },
+            banner_wpn_6: {
+                id: 'banner_wpn_6',
+                category: 'weapon',
+                type: 'limited',
+                shortName: '카이저 전용무기',
+                tag: '전용 무기 공명 · SSR 출현 시 50% 확률',
+                titleHtml: '황혼의 칠흑도 · <span class="text-violet-300">이클립스</span>',
+                weaponId: 'wpn_lim_6',
+                gradient: 'from-violet-950 via-slate-950 to-slate-900',
+                border: 'border-violet-400/50'
+            },
+            banner_wpn_standard: {
+                id: 'banner_wpn_standard',
+                category: 'weapon',
+                type: 'standard',
+                shortName: '상시 무기고 공명',
+                tag: '상시 무기 소환 · 기본 상시 SSR/SR/R 무기 출현',
+                titleHtml: '성좌의 병기고 · <span class="text-rose-300">상시 무기 공명</span>',
+                weaponId: 'wpn_std_1',
+                gradient: 'from-slate-900 via-rose-950/50 to-slate-900',
+                border: 'border-rose-500/40'
             }
         };
 
         /**
-         * 3. 게임 상태 & 로컬 스토리지 관리
+         * 소환 실행 (1회 또는 10회)
          */
-        let gameState = {
-            gems: 3200,
-            tickets: 10,
-            activeBannerId: 'banner_lim_1',
-            limitedPity: 0,
-            limitedSrPity: 0,
-            limitedGuaranteed: false,
-            limitedTotalPulls: 0,
-            standardPity: 0,
-            standardSrPity: 0,
-            standardTotalPulls: 0,
-            inventory: {},
-            customImages: {},
-            partyIds: [],
-            battleClears: 0,
-            muted: false
-        };
+        function performGacha(count = 1) {
+            const costPerPull = 160;
+            const ticketsUsed = Math.min(gameState.tickets, count);
+            const remainingPulls = count - ticketsUsed;
+            const gemsNeeded = remainingPulls * costPerPull;
 
-        let recentHistory = [];
-        let currentSummonCards = [];
-        let codexFilter = 'ALL';
-        let pendingArtHeroId = null;
-
-        function loadGameState() {
-            try {
-                const saved = localStorage.getItem('astral_gacha_save_v2');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    gameState = { ...gameState, ...parsed };
-                }
-            } catch (e) {
-                console.warn('저장된 데이터를 불러오는 중 오류 발생:', e);
-            }
-        }
-
-        function saveGameState() {
-            try {
-                localStorage.setItem('astral_gacha_save_v2', JSON.stringify(gameState));
-            } catch (e) {
-                console.warn('게임 저장 오류 (용량 초과 등):', e);
-            }
-        }
-
-        /**
-         * 4. 일러스트 이미지 해석 & 폴백 렌더링 유틸리티
-         */
-        function getHeroImageSrc(hero) {
-            if (gameState.customImages && gameState.customImages[hero.id]) {
-                return gameState.customImages[hero.id];
-            }
-            if (hero.image && hero.image.trim() !== '') {
-                return hero.image.trim();
-            }
-            return '';
-        }
-
-        function handleHeroImgError(imgEl, heroId) {
-            const hero = HERO_POOL.find(h => h.id === heroId);
-            if (!hero) {
-                imgEl.style.display = 'none';
-                if (imgEl.nextElementSibling) imgEl.nextElementSibling.style.display = 'flex';
+            if (gameState.gems < gemsNeeded) {
+                showToast(`성정석이 부족합니다! (필요: ${gemsNeeded.toLocaleString()}개) 상단 [+] 버튼으로 무료 충전하세요.`, 'error');
+                openShopModal();
                 return;
             }
 
-            const bases = hero.imageCandidates || [hero.id];
-            const exts = ['.jpg', '.png', '.jpeg', '.webp'];
-            const prefixes = ['', './', 'images/', 'img/', 'assets/'];
-            const candidates = [];
+            gameState.tickets -= ticketsUsed;
+            gameState.gems -= gemsNeeded;
+            lastSummonCount = count;
 
-            for (const p of prefixes) {
-                for (const b of bases) {
-                    for (const ext of exts) {
-                        candidates.push(`${p}${b}${ext}`);
-                    }
-                }
+            const banner = BANNERS[gameState.activeBannerId] || BANNERS.banner_lim_1;
+            const results = [];
+// ... existing code ... -->
+            const overlay = document.getElementById('summon-overlay');
+            const container = document.getElementById('summon-cards-container');
+            const revealAllBtn = document.getElementById('reveal-all-btn');
+            const closeBtn = document.getElementById('close-summon-btn');
+            const stageBadge = document.getElementById('summon-stage-badge');
+            const summonAgainText = document.getElementById('summon-again-text');
+
+            if (summonAgainText) {
+                summonAgainText.textContent = results.length === 1 ? '1회 다시 뽑기' : `${results.length}회 다시 뽑기`;
             }
 
-            const idx = parseInt(imgEl.dataset.tryIdx || '0', 10);
-            if (idx < candidates.length) {
-                imgEl.dataset.tryIdx = String(idx + 1);
-                imgEl.src = candidates[idx];
+            revealAllBtn.classList.remove('hidden');
+            closeBtn.classList.add('hidden');
+
+            const highestRarity = results.some(r => r.item.rarity === 'SSR') ? 'SSR' : (results.some(r => r.item.rarity === 'SR') ? 'SR' : 'R');
+            if (highestRarity === 'SSR') {
+                stageBadge.className = 'px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400 text-amber-300 text-xs font-black animate-pulse';
+                stageBadge.innerHTML = '<i class="fa-solid fa-star mr-1"></i>찬란한 무지개빛 별똥별이 떨어집니다! (SSR 출현!)';
+                SoundEngine.playSsrReveal();
+            } else if (highestRarity === 'SR') {
+                stageBadge.className = 'px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400 text-purple-200 text-xs font-bold';
+                stageBadge.innerHTML = '<i class="fa-solid fa-sparkles mr-1"></i>보랏빛 성좌의 기운이 감돕니다! (SR 출현)';
+                SoundEngine.playSrReveal();
             } else {
-                imgEl.style.display = 'none';
-                if (imgEl.nextElementSibling) {
-                    imgEl.nextElementSibling.style.display = 'flex';
-                }
+                stageBadge.className = 'px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400 text-sky-200 text-xs font-bold';
+                stageBadge.innerHTML = '<i class="fa-solid fa-meteor mr-1"></i>푸른 별빛이 응답했습니다.';
+                SoundEngine.playPullStart();
             }
-        }
 
-        function renderHeroVisual(hero, imgClass = 'w-full h-full', iconClass = 'text-4xl') {
-            const src = getHeroImageSrc(hero);
-            const initialSrc = src || `${hero.id}.jpg`;
-            return `
-                <img src="${initialSrc}" alt="${hero.name}" data-try-idx="0"
-                     onerror="handleHeroImgError(this, '${hero.id}')"
-                     class="${imgClass} object-cover object-top">
-                <div style="display:none;" class="w-full h-full items-center justify-center ${iconClass}">
-                    ${hero.icon}
-                </div>
-            `;
+            container.className = results.length === 1
+                ? 'my-auto py-6 w-full max-w-5xl flex items-center justify-center'
+                : 'my-auto py-6 w-full max-w-5xl grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 place-items-center';
+
+            container.innerHTML = results.map((res, idx) => renderSummonCardHTML(res, idx)).join('');
+            overlay.classList.remove('hidden');
         }
 
         /**
-         * 5. Web Audio API 합성 효과음 엔진 (외부 사운드 파일 불필요)
+         * 3. 게임 상태 & 저장소 관리
          */
+        const STORAGE_KEY = 'astral_chronicle_save_v3';
+        let lastSummonCount = 10;
+        let currentBannerCategory = 'hero';
+        let currentCodexFilter = 'ALL';
+        let activeArtTargetHeroId = null;
+
+        let gameState = {
+            gems: 3200,
+            tickets: 10,
+            expPotions: 500,
+            soundEnabled: true,
+            activeBannerId: 'banner_lim_1',
+            totalPulls: 0,
+            pityHero: 0,
+            guaranteedHero: false,
+            srPityHero: 0,
+            pityWeapon: 0,
+            guaranteedWeapon: false,
+            srPityWeapon: 0,
+            ownedHeroes: {},   // { id: { count, breakthrough, level } }
+            ownedWeapons: {},  // { id: { count, breakthrough } }
+            equippedWeapons: {}, // { heroId: weaponId }
+            customArts: {},    // { heroId: dataUrlOrUrl }
+            history: [],
+            party: [],
+            selectedStageId: 1,
+            battleClears: 0
+        };
+
+        // 효과음 엔진 (Web Audio API)
         const SoundEngine = {
             ctx: null,
             init() {
@@ -979,20 +1112,18 @@
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
                     if (AudioCtx) this.ctx = new AudioCtx();
                 }
-                if (this.ctx && this.ctx.state === 'suspended') {
-                    this.ctx.resume();
-                }
             },
-            playTone(freq, type = 'sine', duration = 0.25, gainVal = 0.12, delay = 0) {
-                if (gameState.muted) return;
+            tone(freq, type = 'sine', duration = 0.15, vol = 0.12, delay = 0) {
+                if (!gameState.soundEnabled) return;
                 try {
                     this.init();
                     if (!this.ctx) return;
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = type;
                     osc.frequency.setValueAtTime(freq, this.ctx.currentTime + delay);
-                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime + delay);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime + delay);
                     gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + duration);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
@@ -1000,230 +1131,274 @@
                     osc.stop(this.ctx.currentTime + delay + duration);
                 } catch (e) {}
             },
-            click() {
-                this.playTone(580, 'triangle', 0.08, 0.08);
+            playClick() { this.tone(520, 'triangle', 0.08, 0.08); },
+            playPullStart() {
+                this.tone(440, 'sine', 0.2, 0.1, 0);
+                this.tone(660, 'sine', 0.25, 0.1, 0.08);
             },
-            summonStart() {
-                this.playTone(330, 'sine', 0.35, 0.12, 0);
-                this.playTone(440, 'sine', 0.35, 0.12, 0.08);
-                this.playTone(660, 'triangle', 0.45, 0.14, 0.16);
+            playSrReveal() {
+                this.tone(523.25, 'triangle', 0.22, 0.12, 0);
+                this.tone(659.25, 'triangle', 0.22, 0.12, 0.09);
+                this.tone(783.99, 'triangle', 0.35, 0.14, 0.18);
             },
-            reveal(rarity) {
-                if (rarity === 'SSR') {
-                    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
-                        this.playTone(f, 'triangle', 0.45, 0.15, i * 0.07);
-                    });
-                } else if (rarity === 'SR') {
-                    [440, 554.37, 659.25].forEach((f, i) => {
-                        this.playTone(f, 'sine', 0.3, 0.11, i * 0.06);
-                    });
-                } else {
-                    this.playTone(392, 'sine', 0.15, 0.07);
-                }
+            playSsrReveal() {
+                const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+                notes.forEach((n, i) => this.tone(n, 'triangle', 0.38, 0.14, i * 0.08));
+            },
+            playHit() {
+                this.tone(150, 'sawtooth', 0.18, 0.14, 0);
+                this.tone(95, 'square', 0.2, 0.12, 0.05);
+            },
+            playHeal() {
+                this.tone(587.33, 'sine', 0.2, 0.1, 0);
+                this.tone(880, 'sine', 0.3, 0.12, 0.1);
             }
         };
 
         function toggleSound() {
-            gameState.muted = !gameState.muted;
+            gameState.soundEnabled = !gameState.soundEnabled;
             saveGameState();
-            updateSoundIcon();
-            if (!gameState.muted) SoundEngine.click();
+            updateSoundButton();
+            if (gameState.soundEnabled) SoundEngine.playClick();
         }
 
-        function updateSoundIcon() {
+        function updateSoundButton() {
             const btn = document.getElementById('sound-toggle-btn');
             if (!btn) return;
-            btn.innerHTML = gameState.muted
-                ? '<i class="fa-solid fa-volume-xmark text-sm text-rose-400"></i>'
-                : '<i class="fa-solid fa-volume-high text-sm text-slate-300"></i>';
+            btn.innerHTML = gameState.soundEnabled
+                ? '<i class="fa-solid fa-volume-high text-sm text-cyan-300"></i>'
+                : '<i class="fa-solid fa-volume-xmark text-sm text-slate-500"></i>';
+        }
+
+        function loadGameState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    gameState = { ...gameState, ...parsed };
+                }
+            } catch (e) {
+                console.warn('저장 데이터 로드 실패:', e);
+            }
+            if (!gameState.ownedHeroes) gameState.ownedHeroes = {};
+            if (!gameState.ownedWeapons) gameState.ownedWeapons = {};
+            if (!gameState.equippedWeapons) gameState.equippedWeapons = {};
+            if (!gameState.customArts) gameState.customArts = {};
+            if (!Array.isArray(gameState.party)) gameState.party = [];
+            if (!Array.isArray(gameState.history)) gameState.history = [];
+        }
+
+        function saveGameState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+            } catch (e) {
+                console.warn('저장 실패:', e);
+            }
         }
 
         /**
-         * 6. 배너 선택 및 UI 갱신
+         * 4. 일러스트 이미지 경로 탐색 및 렌더링 유틸
          */
-        function renderBannerSelector() {
-            const bar = document.getElementById('banner-selector-bar');
-            if (!bar) return;
-            bar.innerHTML = Object.values(BANNERS).map(b => {
-                const isActive = b.id === gameState.activeBannerId;
-                const hero = HERO_POOL.find(h => h.id === b.heroId);
-                return `
-                    <button onclick="selectBanner('${b.id}')" class="shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border transition ${
-                        isActive
-                            ? 'bg-gradient-to-r from-amber-500/25 to-purple-500/25 border-amber-400 text-amber-200 shadow-md'
-                            : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
-                    }">
-                        <span>${hero ? hero.icon : '✨'}</span>
-                        <span>${b.shortName}</span>
-                    </button>
-                `;
-            }).join('');
+        function getHeroImageSrc(hero) {
+            if (!hero) return '';
+            if (gameState.customArts && gameState.customArts[hero.id]) {
+                return gameState.customArts[hero.id];
+            }
+            return hero.image || '';
         }
 
-        function selectBanner(bannerId) {
-            SoundEngine.click();
-            gameState.activeBannerId = bannerId;
-            saveGameState();
-            updateUI();
+        function handleImgFallback(imgEl, heroId, fallbackIcon) {
+            const hero = HERO_POOL.find(h => h.id === heroId);
+            const tried = Number(imgEl.dataset.tryIndex || '0');
+            const candidates = [];
+
+            if (hero && Array.isArray(hero.imageCandidates)) {
+                const exts = ['.jpg', '.png', '.jpeg', '.webp'];
+                const prefixes = ['', 'images/', 'img/', 'assets/'];
+                hero.imageCandidates.forEach(base => {
+                    prefixes.forEach(pref => {
+                        exts.forEach(ext => {
+                            const path = `${pref}${base}${ext}`;
+                            if (path !== hero.image) candidates.push(path);
+                        });
+                    });
+                });
+            }
+
+            if (tried < candidates.length) {
+                imgEl.dataset.tryIndex = String(tried + 1);
+                imgEl.src = candidates[tried];
+                return;
+            }
+
+            const parent = imgEl.parentElement;
+            if (parent) {
+                parent.innerHTML = `<span class="select-none">${fallbackIcon || '⭐'}</span>`;
+            }
         }
 
-        function updateUI() {
-            renderBannerSelector();
-
-            document.getElementById('ticket-count').textContent = gameState.tickets.toLocaleString();
-            document.getElementById('gem-count').textContent = gameState.gems.toLocaleString();
-
-            const banner = BANNERS[gameState.activeBannerId] || BANNERS.banner_lim_1;
-            const featuredHero = HERO_POOL.find(h => h.id === banner.heroId) || HERO_POOL[0];
-
-            const bannerBox = document.getElementById('banner-display');
-            bannerBox.className = `relative rounded-3xl overflow-hidden border ${banner.border} bg-gradient-to-br ${banner.gradient} shadow-2xl p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6`;
-
-            document.getElementById('banner-tag').textContent = banner.tag;
-            document.getElementById('banner-title').innerHTML = banner.titleHtml;
-            document.getElementById('banner-desc').textContent = featuredHero.desc;
-
-            const artVisual = document.getElementById('banner-art-visual');
-            artVisual.innerHTML = renderHeroVisual(featuredHero, 'w-full h-full', 'text-7xl sm:text-8xl');
-            document.getElementById('banner-hero-label').textContent = `${featuredHero.rarity} · ${featuredHero.element} 속성`;
-
-            // 천장 게이지 표시
-            const isLimited = banner.type === 'limited';
-            const pity = isLimited ? gameState.limitedPity : gameState.standardPity;
-            const totalPulls = isLimited ? gameState.limitedTotalPulls : gameState.standardTotalPulls;
-
-            document.getElementById('pity-current').textContent = pity;
-            document.getElementById('pity-bar').style.width = `${Math.min(100, (pity / 80) * 100)}%`;
-            document.getElementById('total-pulls-text').textContent = `누적 소환: ${totalPulls}회`;
-
-            const guarBadge = document.getElementById('guaranteed-badge');
-            if (isLimited && gameState.limitedGuaranteed) {
-                guarBadge.classList.remove('hidden');
-            } else {
-                guarBadge.classList.add('hidden');
+        function renderHeroVisual(hero, extraImgClass = 'w-full h-full object-cover object-top', iconClass = 'text-4xl') {
+            const src = getHeroImageSrc(hero);
+            if (src) {
+                return `<img src="${src}" alt="${hero.name}" data-try-index="0" onerror="handleImgFallback(this, '${hero.id}', '${hero.icon}')" class="${extraImgClass}">`;
             }
-
-            // 소환 비용 배지 (티켓 우선, 부족 시 성정석)
-            const cost1El = document.getElementById('cost-1-badge');
-            if (gameState.tickets >= 1) {
-                cost1El.innerHTML = `<i class="fa-solid fa-ticket text-cyan-400"></i><span>1</span>`;
-            } else {
-                cost1El.innerHTML = `<i class="fa-solid fa-gem text-fuchsia-400"></i><span>160</span>`;
-            }
-
-            const cost10El = document.getElementById('cost-10-badge');
-            if (gameState.tickets >= 10) {
-                cost10El.innerHTML = `<i class="fa-solid fa-ticket text-cyan-400"></i><span>10</span>`;
-            } else {
-                const needGems = (10 - gameState.tickets) * 160;
-                cost10El.innerHTML = `<i class="fa-solid fa-gem text-fuchsia-400"></i><span>${needGems.toLocaleString()}</span>`;
-            }
-
-            // 도감 수집률 배지
-            const unlockedCount = Object.keys(gameState.inventory).length;
-            const pct = Math.round((unlockedCount / HERO_POOL.length) * 100);
-            document.getElementById('codex-badge').textContent = `${pct}%`;
-
-            // 최근 기록 렌더링
-            const histEl = document.getElementById('recent-history-list');
-            if (recentHistory.length === 0) {
-                histEl.innerHTML = `<span class="text-xs text-slate-500">아직 소환 기록이 없습니다. 위 버튼을 눌러 영웅을 소환해 보세요!</span>`;
-            } else {
-                histEl.innerHTML = recentHistory.map(h => {
-                    const colorClass = h.rarity === 'SSR'
-                        ? 'bg-amber-500/20 border-amber-400 text-amber-200 font-extrabold'
-                        : h.rarity === 'SR'
-                            ? 'bg-purple-500/20 border-purple-400/60 text-purple-200 font-bold'
-                            : 'bg-slate-800/80 border-slate-700 text-slate-300';
-                    return `<span class="px-2.5 py-1 rounded-lg border text-[11px] ${colorClass}">${h.icon} ${h.name}</span>`;
-                }).join('');
-            }
+            return `<span class="${iconClass} select-none">${hero.icon}</span>`;
         }
 
         /**
-         * 7. 가챠 확률 계산 및 소환 실행 엔진
+         * 5. 단일 가챠 확률 계산 & 결과 처리 (영웅 / 무기 공용)
          */
         function rollSinglePull(banner) {
-            const isLimited = banner.type === 'limited';
-            let pity = isLimited ? gameState.limitedPity + 1 : gameState.standardPity + 1;
-            let srPity = isLimited ? gameState.limitedSrPity + 1 : gameState.standardSrPity + 1;
+            const isWeapon = banner.category === 'weapon';
+            if (isWeapon) {
+                gameState.pityWeapon += 1;
+                gameState.srPityWeapon += 1;
+            } else {
+                gameState.pityHero += 1;
+                gameState.srPityHero += 1;
+            }
+            gameState.totalPulls += 1;
 
-            // 기본 SSR 확률 2.0%, 70회부터 소프트 천장(+8%씩 증가), 80회 100%
+            const currentPity = isWeapon ? gameState.pityWeapon : gameState.pityHero;
+            const currentSrPity = isWeapon ? gameState.srPityWeapon : gameState.srPityHero;
+
+            // 기본 SSR 확률 2.0%, 70회부터 소프트 천장(+8%/회), 80회 100% 확정
             let ssrRate = 0.02;
-            if (pity >= 80) {
+            if (currentPity >= 80) {
                 ssrRate = 1.0;
-            } else if (pity >= 70) {
-                ssrRate = 0.02 + (pity - 69) * 0.08;
+            } else if (currentPity >= 70) {
+                ssrRate = 0.02 + (currentPity - 69) * 0.08;
             }
 
-            const srRate = 0.13;
-            const rand = Math.random();
+            const roll = Math.random();
             let rarity = 'R';
-
-            if (rand < ssrRate) {
+            if (roll < ssrRate) {
                 rarity = 'SSR';
-                pity = 0;
-                srPity = 0;
-            } else if (rand < ssrRate + srRate || srPity >= 10) {
+            } else if (currentSrPity >= 10 || roll < ssrRate + 0.13) {
                 rarity = 'SR';
-                srPity = 0;
             }
 
-            // 등급 내 영웅 추첨
-            let chosenHero = null;
-            if (rarity === 'SSR') {
-                if (isLimited) {
-                    const pickupHero = HERO_POOL.find(h => h.id === banner.heroId);
-                    const standardSsrs = HERO_POOL.filter(h => h.rarity === 'SSR' && !h.limited);
-                    if (gameState.limitedGuaranteed || Math.random() < 0.5) {
-                        chosenHero = pickupHero;
-                        gameState.limitedGuaranteed = false;
+            let item = null;
+            let isNew = false;
+            let breakthrough = 0;
+            let refundGems = 0;
+
+            if (isWeapon) {
+                if (rarity === 'SSR') {
+                    gameState.pityWeapon = 0;
+                    gameState.srPityWeapon = 0;
+                    if (banner.type === 'limited') {
+                        const winRateUp = gameState.guaranteedWeapon || Math.random() < 0.5;
+                        if (winRateUp) {
+                            item = WEAPON_POOL.find(w => w.id === banner.weaponId);
+                            gameState.guaranteedWeapon = false;
+                        } else {
+                            const stdSsrs = WEAPON_POOL.filter(w => w.rarity === 'SSR' && !w.limited);
+                            item = stdSsrs[Math.floor(Math.random() * stdSsrs.length)];
+                            gameState.guaranteedWeapon = true;
+                        }
                     } else {
-                        chosenHero = standardSsrs[Math.floor(Math.random() * standardSsrs.length)];
-                        gameState.limitedGuaranteed = true;
+                        const stdSsrs = WEAPON_POOL.filter(w => w.rarity === 'SSR' && !w.limited);
+                        item = stdSsrs[Math.floor(Math.random() * stdSsrs.length)];
+                    }
+                } else if (rarity === 'SR') {
+                    gameState.srPityWeapon = 0;
+                    const srs = WEAPON_POOL.filter(w => w.rarity === 'SR');
+                    item = srs[Math.floor(Math.random() * srs.length)];
+                } else {
+                    const rs = WEAPON_POOL.filter(w => w.rarity === 'R');
+                    item = rs[Math.floor(Math.random() * rs.length)];
+                }
+
+                // 무기 인벤토리 및 돌파(+6 최대) 반영
+                if (!gameState.ownedWeapons[item.id]) {
+                    gameState.ownedWeapons[item.id] = { count: 1, breakthrough: 0 };
+                    isNew = true;
+                } else {
+                    const record = gameState.ownedWeapons[item.id];
+                    record.count += 1;
+                    if (record.breakthrough < 6) {
+                        record.breakthrough += 1;
+                    } else {
+                        refundGems = item.rarity === 'SSR' ? 320 : (item.rarity === 'SR' ? 80 : 20);
+                        gameState.gems += refundGems;
+                    }
+                    breakthrough = record.breakthrough;
+                }
+            } else {
+                if (rarity === 'SSR') {
+                    gameState.pityHero = 0;
+                    gameState.srPityHero = 0;
+                    if (banner.type === 'limited') {
+                        const winRateUp = gameState.guaranteedHero || Math.random() < 0.5;
+                        if (winRateUp) {
+                            item = HERO_POOL.find(h => h.id === banner.heroId);
+                            gameState.guaranteedHero = false;
+                        } else {
+                            const stdSsrs = HERO_POOL.filter(h => h.rarity === 'SSR' && !h.limited);
+                            item = stdSsrs[Math.floor(Math.random() * stdSsrs.length)];
+                            gameState.guaranteedHero = true;
+                        }
+                    } else {
+                        const stdSsrs = HERO_POOL.filter(h => h.rarity === 'SSR' && !h.limited);
+                        item = stdSsrs[Math.floor(Math.random() * stdSsrs.length)];
+                    }
+                } else if (rarity === 'SR') {
+                    gameState.srPityHero = 0;
+                    const srs = HERO_POOL.filter(h => h.rarity === 'SR');
+                    item = srs[Math.floor(Math.random() * srs.length)];
+                } else {
+                    const rs = HERO_POOL.filter(h => h.rarity === 'R');
+                    item = rs[Math.floor(Math.random() * rs.length)];
+                }
+
+                // 영웅 도감 및 돌파(+6 최대) 반영
+                if (!gameState.ownedHeroes[item.id]) {
+                    gameState.ownedHeroes[item.id] = { count: 1, breakthrough: 0, level: 1 };
+                    isNew = true;
+                    if (gameState.party.length < 4 && !gameState.party.includes(item.id)) {
+                        gameState.party.push(item.id);
                     }
                 } else {
-                    const standardSsrs = HERO_POOL.filter(h => h.rarity === 'SSR' && !h.limited);
-                    chosenHero = standardSsrs[Math.floor(Math.random() * standardSsrs.length)];
+                    const record = gameState.ownedHeroes[item.id];
+                    record.count += 1;
+                    if (record.breakthrough < 6) {
+                        record.breakthrough += 1;
+                    } else {
+                        refundGems = item.rarity === 'SSR' ? 400 : (item.rarity === 'SR' ? 100 : 30);
+                        gameState.gems += refundGems;
+                    }
+                    breakthrough = record.breakthrough;
                 }
-            } else if (rarity === 'SR') {
-                const srPool = HERO_POOL.filter(h => h.rarity === 'SR');
-                chosenHero = srPool[Math.floor(Math.random() * srPool.length)];
-            } else {
-                const rPool = HERO_POOL.filter(h => h.rarity === 'R');
-                chosenHero = rPool[Math.floor(Math.random() * rPool.length)];
             }
 
-            if (isLimited) {
-                gameState.limitedPity = pity;
-                gameState.limitedSrPity = srPity;
-                gameState.limitedTotalPulls += 1;
-            } else {
-                gameState.standardPity = pity;
-                gameState.standardSrPity = srPity;
-                gameState.standardTotalPulls += 1;
-            }
+            gameState.history.unshift({
+                name: item.name,
+                rarity: item.rarity,
+                isWeapon
+            });
+            if (gameState.history.length > 20) gameState.history.length = 20;
 
-            const isNew = !gameState.inventory[chosenHero.id];
-            gameState.inventory[chosenHero.id] = (gameState.inventory[chosenHero.id] || 0) + 1;
-
-            return { hero: chosenHero, isNew };
+            return { item, isWeapon, isNew, breakthrough, refundGems };
         }
 
-        function performGacha(count) {
-            // 재화 확인 및 차감 (티켓 우선 사용, 부족분은 1회당 성정석 160개)
-            let ticketsUsed = Math.min(gameState.tickets, count);
-            let remaining = count - ticketsUsed;
-            let gemsNeeded = remaining * 160;
+        // performGacha 내부에서 루프 실행 부분을 보완하기 위해 재정의
+        const _origPerformGacha = performGacha;
+        performGacha = function(count = 1) {
+            const costPerPull = 160;
+            const ticketsUsed = Math.min(gameState.tickets, count);
+            const remainingPulls = count - ticketsUsed;
+            const gemsNeeded = remainingPulls * costPerPull;
 
             if (gameState.gems < gemsNeeded) {
-                showToast('성정석이 부족합니다! 상단 [+] 버튼으로 무료 충전해 주세요.', 'error');
+                showToast(`성정석이 부족합니다! (필요: ${gemsNeeded.toLocaleString()}개) 상단 [+] 버튼으로 무료 충전하세요.`, 'error');
                 openShopModal();
                 return;
             }
 
             gameState.tickets -= ticketsUsed;
             gameState.gems -= gemsNeeded;
+            lastSummonCount = count;
 
             const banner = BANNERS[gameState.activeBannerId] || BANNERS.banner_lim_1;
             const results = [];
@@ -1231,320 +1406,307 @@
                 results.push(rollSinglePull(banner));
             }
 
-            // 최근 기록 업데이트 (최대 20개)
-            results.forEach(r => {
-                recentHistory.unshift(r.hero);
-                if (recentHistory.length > 20) recentHistory.pop();
-            });
-
             saveGameState();
             updateUI();
-            SoundEngine.summonStart();
-            openSummonOverlay(results);
-        }
-
-        function openSummonOverlay(results) {
-            currentSummonCards = results.map((r, idx) => ({
-                ...r,
-                index: idx,
-                revealed: false
-            }));
 
             const overlay = document.getElementById('summon-overlay');
             const container = document.getElementById('summon-cards-container');
             const revealAllBtn = document.getElementById('reveal-all-btn');
             const closeBtn = document.getElementById('close-summon-btn');
             const stageBadge = document.getElementById('summon-stage-badge');
+            const summonAgainText = document.getElementById('summon-again-text');
+
+            if (summonAgainText) {
+                summonAgainText.textContent = results.length === 1 ? '1회 다시 뽑기' : `${results.length}회 다시 뽑기`;
+            }
 
             revealAllBtn.classList.remove('hidden');
             closeBtn.classList.add('hidden');
 
-            const hasSsr = results.some(r => r.hero.rarity === 'SSR');
-            const hasSr = results.some(r => r.hero.rarity === 'SR');
-            if (hasSsr) {
-                stageBadge.innerHTML = '✨ <strong class="text-amber-300">황금빛 유성 낙하!</strong> 최고등급 SSR의 기운이 느껴집니다!';
-                stageBadge.className = 'px-3.5 py-1.5 rounded-full bg-amber-500/25 border border-amber-400 text-amber-200 text-xs font-bold animate-pulse';
-            } else if (hasSr) {
-                stageBadge.innerHTML = '🔮 <strong class="text-purple-300">보랏빛 성광!</strong> 정예 영웅이 응답했습니다.';
-                stageBadge.className = 'px-3.5 py-1.5 rounded-full bg-purple-500/20 border border-purple-400 text-purple-200 text-xs font-bold';
+            const highestRarity = results.some(r => r.item.rarity === 'SSR') ? 'SSR' : (results.some(r => r.item.rarity === 'SR') ? 'SR' : 'R');
+            if (highestRarity === 'SSR') {
+                stageBadge.className = 'px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400 text-amber-300 text-xs font-black animate-pulse';
+                stageBadge.innerHTML = '<i class="fa-solid fa-star mr-1"></i>찬란한 무지개빛 별똥별이 떨어집니다! (SSR 출현!)';
+                SoundEngine.playSsrReveal();
+            } else if (highestRarity === 'SR') {
+                stageBadge.className = 'px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400 text-purple-200 text-xs font-bold';
+                stageBadge.innerHTML = '<i class="fa-solid fa-sparkles mr-1"></i>보랏빛 성좌의 기운이 감돕니다! (SR 출현)';
+                SoundEngine.playSrReveal();
             } else {
-                stageBadge.innerHTML = '🌠 별빛의 부름이 도착했습니다.';
-                stageBadge.className = 'px-3.5 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 text-xs font-bold';
+                stageBadge.className = 'px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400 text-sky-200 text-xs font-bold';
+                stageBadge.innerHTML = '<i class="fa-solid fa-meteor mr-1"></i>푸른 별빛이 응답했습니다.';
+                SoundEngine.playPullStart();
             }
 
             container.className = results.length === 1
-                ? 'my-auto py-6 w-full max-w-xs grid grid-cols-1 place-items-center'
+                ? 'my-auto py-6 w-full max-w-5xl flex items-center justify-center'
                 : 'my-auto py-6 w-full max-w-5xl grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 place-items-center';
 
-            container.innerHTML = currentSummonCards.map((item, idx) => {
-                const h = item.hero;
-                const backGlow = h.rarity === 'SSR'
-                    ? 'border-amber-400 bg-gradient-to-b from-amber-950 via-purple-950 to-slate-950 ssr-aura'
-                    : h.rarity === 'SR'
-                        ? 'border-purple-400 bg-gradient-to-b from-purple-950 to-slate-950 sr-aura'
-                        : 'border-sky-500/50 bg-gradient-to-b from-slate-900 to-slate-950';
+            container.innerHTML = results.map((res, idx) => renderSummonCardHTML(res, idx)).join('');
+            overlay.classList.remove('hidden');
+        };
 
-                const frontBorder = h.rarity === 'SSR'
-                    ? 'border-amber-300 bg-gradient-to-b from-amber-900/60 via-slate-900 to-slate-950 ssr-aura'
-                    : h.rarity === 'SR'
-                        ? 'border-purple-400 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-950 sr-aura'
-                        : 'border-slate-700 bg-slate-900';
+        function renderSummonCardHTML(res, idx) {
+            const { item, isWeapon, isNew, breakthrough, refundGems } = res;
+            const isSsr = item.rarity === 'SSR';
+            const isSr = item.rarity === 'SR';
 
-                const rarityBadgeColor = h.rarity === 'SSR'
-                    ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950'
-                    : h.rarity === 'SR'
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-sky-600 text-white';
+            const backGlow = isSsr
+                ? 'border-amber-300 bg-gradient-to-b from-amber-900/90 via-fuchsia-950 to-slate-950 ssr-aura'
+                : (isSr
+                    ? 'border-purple-400 bg-gradient-to-b from-purple-950 via-slate-900 to-slate-950 sr-aura'
+                    : 'border-sky-500/50 bg-gradient-to-b from-slate-900 to-slate-950');
 
-                return `
-                    <div id="gacha-card-${idx}" onclick="revealCard(${idx})" style="animation-delay: ${idx * 0.05}s"
-                         class="meteor-anim perspective-1000 w-36 sm:w-44 h-52 sm:h-60 cursor-pointer select-none">
-                        <div class="card-inner w-full h-full">
-                            <!-- 카드 뒷면 (미공개) -->
-                            <div class="card-face rounded-2xl border-2 ${backGlow} flex flex-col items-center justify-center p-3 shadow-xl relative overflow-hidden holo-shimmer">
-                                <div class="w-14 h-14 rounded-full border border-white/20 flex items-center justify-center text-2xl mb-2 bg-white/5">
-                                    ${h.rarity === 'SSR' ? '🌟' : h.rarity === 'SR' ? '💎' : '✨'}
-                                </div>
-                                <span class="text-[11px] font-bold tracking-widest text-white/80 uppercase">ASTRAL</span>
-                                <span class="text-[10px] text-white/50 mt-1">터치하여 확인</span>
+            const frontBorder = isSsr
+                ? 'border-amber-300 bg-gradient-to-b from-amber-950/95 via-slate-900 to-indigo-950 ssr-aura'
+                : (isSr
+                    ? 'border-purple-400 bg-gradient-to-b from-purple-950/90 via-slate-900 to-slate-950 sr-aura'
+                    : 'border-slate-700 bg-slate-900');
+
+            const badgeColor = isSsr ? 'bg-amber-400 text-slate-950' : (isSr ? 'bg-purple-500 text-white' : 'bg-sky-500 text-slate-950');
+
+            const visualHtml = isWeapon
+                ? `<div class="w-16 h-16 rounded-2xl bg-slate-950/80 border border-white/15 flex items-center justify-center text-4xl shadow-inner">${item.icon}</div>`
+                : `<div class="w-24 h-28 rounded-xl overflow-hidden bg-slate-950/80 border border-white/15 flex items-center justify-center shadow-inner">${renderHeroVisual(item, 'w-full h-full object-cover object-top', 'text-4xl')}</div>`;
+
+            let statusTag = '';
+            if (isNew) {
+                statusTag = `<span class="px-1.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[9px]">NEW!</span>`;
+            } else if (refundGems > 0) {
+                statusTag = `<span class="px-1.5 py-0.5 rounded bg-fuchsia-500/30 border border-fuchsia-400 text-fuchsia-200 font-bold text-[9px]">MAX 환급 +${refundGems}💎</span>`;
+            } else {
+                statusTag = `<span class="px-1.5 py-0.5 rounded bg-amber-500/25 border border-amber-400/50 text-amber-200 font-bold text-[9px]">돌파 +${breakthrough}</span>`;
+            }
+
+            return `
+                <div onclick="flipCard(this)" style="animation-delay: ${idx * 55}ms" class="summon-card-item meteor-anim perspective-1000 w-36 sm:w-44 h-56 sm:h-64 cursor-pointer select-none">
+                    <div class="card-inner">
+                        <!-- 카드 뒷면 -->
+                        <div class="card-face rounded-2xl border-2 ${backGlow} flex flex-col items-center justify-center p-3 shadow-xl relative overflow-hidden holo-shimmer">
+                            <div class="w-14 h-14 rounded-full bg-white/5 border border-white/20 flex items-center justify-center text-2xl mb-2">
+                                ${isSsr ? '🌟' : (isSr ? '✨' : '💫')}
+                            </div>
+                            <div class="text-[11px] font-black tracking-widest uppercase ${isSsr ? 'text-amber-300' : (isSr ? 'text-purple-300' : 'text-sky-300')}">
+                                ${item.rarity}
+                            </div>
+                            <div class="text-[10px] text-slate-400 mt-1">터치하여 공개</div>
+                        </div>
+
+                        <!-- 카드 앞면 -->
+                        <div class="card-face card-front rounded-2xl border-2 ${frontBorder} flex flex-col items-center justify-between p-2.5 shadow-xl relative overflow-hidden">
+                            <div class="w-full flex items-center justify-between">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-black ${badgeColor}">${item.rarity}</span>
+                                ${statusTag}
                             </div>
 
-                            <!-- 카드 앞면 (공개) -->
-                            <div class="card-face card-front rounded-2xl border-2 ${frontBorder} flex flex-col justify-between overflow-hidden shadow-xl relative">
-                                <div class="relative flex-1 w-full bg-slate-950 flex items-center justify-center overflow-hidden">
-                                    ${renderHeroVisual(h, 'w-full h-full', 'text-5xl')}
-                                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-black ${rarityBadgeColor} shadow">
-                                        ${h.rarity}
-                                    </span>
-                                    ${item.isNew ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-500 text-slate-950 text-[9px] font-black shadow">NEW</span>' : ''}
-                                </div>
-                                <div class="p-2.5 bg-slate-950/95 border-t border-slate-800 text-center">
-                                    <div class="text-[10px] text-slate-400 truncate">${h.title}</div>
-                                    <div class="text-xs sm:text-sm font-extrabold text-white truncate">${h.name}</div>
-                                </div>
+                            ${visualHtml}
+
+                            <div class="text-center w-full">
+                                <div class="text-[10px] text-slate-400 truncate">${isWeapon ? '⚔️ 무기 · ' + item.element : item.element + ' 속성'}</div>
+                                <div class="text-xs font-extrabold text-white truncate">${item.name}</div>
                             </div>
                         </div>
                     </div>
-                `;
-            }).join('');
-
-            overlay.classList.remove('hidden');
+                </div>
+            `;
         }
 
-        function revealCard(idx) {
-            const item = currentSummonCards[idx];
-            if (!item || item.revealed) return;
-            item.revealed = true;
-
-            const cardEl = document.getElementById(`gacha-card-${idx}`);
-            if (cardEl) cardEl.classList.add('card-flipped');
-
-            SoundEngine.reveal(item.hero.rarity);
-            checkAllRevealed();
+        function flipCard(cardEl) {
+            if (!cardEl.classList.contains('card-flipped')) {
+                cardEl.classList.add('card-flipped');
+                SoundEngine.playClick();
+                checkAllCardsRevealed();
+            }
         }
 
         function revealAllCards() {
-            let bestRarity = 'R';
-            currentSummonCards.forEach((item, idx) => {
-                if (!item.revealed) {
-                    item.revealed = true;
-                    const cardEl = document.getElementById(`gacha-card-${idx}`);
-                    if (cardEl) cardEl.classList.add('card-flipped');
-                    if (item.hero.rarity === 'SSR') bestRarity = 'SSR';
-                    else if (item.hero.rarity === 'SR' && bestRarity !== 'SSR') bestRarity = 'SR';
-                }
+            const cards = document.querySelectorAll('.summon-card-item');
+            cards.forEach((c, i) => {
+                setTimeout(() => c.classList.add('card-flipped'), i * 35);
             });
-            SoundEngine.reveal(bestRarity);
-            checkAllRevealed();
+            SoundEngine.playSrReveal();
+            setTimeout(checkAllCardsRevealed, cards.length * 35 + 50);
         }
 
-        function checkAllRevealed() {
-            const allDone = currentSummonCards.every(c => c.revealed);
-            if (allDone) {
+        function checkAllCardsRevealed() {
+            const total = document.querySelectorAll('.summon-card-item').length;
+            const flipped = document.querySelectorAll('.summon-card-item.card-flipped').length;
+            if (total > 0 && flipped >= total) {
                 document.getElementById('reveal-all-btn').classList.add('hidden');
                 document.getElementById('close-summon-btn').classList.remove('hidden');
             }
         }
 
         function closeSummonOverlay() {
-            SoundEngine.click();
             document.getElementById('summon-overlay').classList.add('hidden');
+            renderCodex();
+            renderBattleSetup();
         }
 
         /**
-         * 8. 탭 전환 및 영웅 도감 렌더링
+         * 6. 배너 전환 & UI 업데이트
          */
-        function switchTab(tabName) {
-            SoundEngine.click();
-            const summonView = document.getElementById('view-summon');
-            const battleView = document.getElementById('view-battle');
-            const codexView = document.getElementById('view-codex');
-            const summonBtn = document.getElementById('tab-summon');
-            const battleBtn = document.getElementById('tab-battle');
-            const codexBtn = document.getElementById('tab-codex');
+        function switchBannerCategory(cat) {
+            currentBannerCategory = cat;
+            const heroBtn = document.getElementById('subtab-hero-banner');
+            const wpnBtn = document.getElementById('subtab-weapon-banner');
 
-            const activeClass = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition';
-            const inactiveClass = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition';
-
-            summonView.classList.add('hidden');
-            battleView.classList.add('hidden');
-            codexView.classList.add('hidden');
-            summonBtn.className = inactiveClass;
-            battleBtn.className = inactiveClass;
-            codexBtn.className = inactiveClass;
-
-            if (tabName === 'summon') {
-                summonView.classList.remove('hidden');
-                summonBtn.className = activeClass;
-                updateUI();
-            } else if (tabName === 'battle') {
-                battleView.classList.remove('hidden');
-                battleBtn.className = activeClass;
-                renderBattleSetup();
-            } else {
-                codexView.classList.remove('hidden');
-                codexBtn.className = activeClass;
-                renderCodex();
-            }
-        }
-
-        function filterCodex(rarity) {
-            SoundEngine.click();
-            codexFilter = rarity;
-            document.querySelectorAll('.codex-filter-btn').forEach(btn => {
-                if (btn.dataset.filter === rarity) {
-                    btn.className = 'codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition';
-                } else {
-                    btn.className = 'codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition';
+            if (cat === 'hero') {
+                heroBtn.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950 shadow transition';
+                wpnBtn.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition';
+                if (!BANNERS[gameState.activeBannerId] || BANNERS[gameState.activeBannerId].category !== 'hero') {
+                    gameState.activeBannerId = 'banner_lim_1';
                 }
-            });
-            renderCodex();
+            } else {
+                wpnBtn.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold bg-rose-500 text-white shadow transition';
+                heroBtn.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition';
+                if (!BANNERS[gameState.activeBannerId] || BANNERS[gameState.activeBannerId].category !== 'weapon') {
+                    gameState.activeBannerId = 'banner_wpn_1';
+                }
+            }
+            saveGameState();
+            updateUI();
         }
 
-        function renderCodex() {
-            const grid = document.getElementById('codex-grid');
-            if (!grid) return;
+        function selectBanner(bannerId) {
+            if (!BANNERS[bannerId]) return;
+            gameState.activeBannerId = bannerId;
+            SoundEngine.playClick();
+            saveGameState();
+            updateUI();
+        }
 
-            const unlockedIds = Object.keys(gameState.inventory);
-            const totalHeroes = HERO_POOL.length;
-            const pct = Math.round((unlockedIds.length / totalHeroes) * 100);
+        function updateUI() {
+            // 상단 재화
+            document.getElementById('ticket-count').textContent = gameState.tickets.toLocaleString();
+            document.getElementById('gem-count').textContent = gameState.gems.toLocaleString();
+            document.getElementById('exp-potion-count').textContent = gameState.expPotions.toLocaleString();
+            document.getElementById('codex-exp-text').textContent = gameState.expPotions.toLocaleString();
 
-            document.getElementById('codex-progress-text').textContent = `${unlockedIds.length} / ${totalHeroes} (${pct}%)`;
-            const ssrOwned = HERO_POOL.filter(h => h.rarity === 'SSR' && unlockedIds.includes(h.id)).length;
-            document.getElementById('codex-ssr-count').textContent = `${ssrOwned}명`;
-
-            const filtered = codexFilter === 'ALL'
-                ? HERO_POOL
-                : HERO_POOL.filter(h => h.rarity === codexFilter);
-
-            grid.innerHTML = filtered.map(h => {
-                const count = gameState.inventory[h.id] || 0;
-                const unlocked = count > 0;
-                const dupeLv = Math.max(0, count - 1);
-
-                const borderStyle = !unlocked
-                    ? 'border-slate-800/80 opacity-50 grayscale'
-                    : h.rarity === 'SSR'
-                        ? 'border-amber-400/80 shadow-lg shadow-amber-500/10'
-                        : h.rarity === 'SR'
-                            ? 'border-purple-400/70'
-                            : 'border-slate-700';
-
+            // 배너 버튼 목록 렌더링
+            const selectorBar = document.getElementById('banner-selector-bar');
+            const categoryBanners = Object.values(BANNERS).filter(b => b.category === currentBannerCategory);
+            selectorBar.innerHTML = categoryBanners.map(b => {
+                const active = b.id === gameState.activeBannerId;
                 return `
-                    <div onclick="openHeroDetail('${h.id}')" class="cursor-pointer rounded-2xl bg-slate-900/90 border ${borderStyle} overflow-hidden flex flex-col transition hover:-translate-y-1">
-                        <div class="relative h-36 bg-slate-950 flex items-center justify-center overflow-hidden">
-                            ${renderHeroVisual(h, 'w-full h-full', 'text-5xl')}
-                            <span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black ${
-                                h.rarity === 'SSR' ? 'bg-amber-400 text-slate-950' : h.rarity === 'SR' ? 'bg-purple-500 text-white' : 'bg-sky-600 text-white'
-                            }">${h.rarity}</span>
-                            ${unlocked
-                                ? `<span class="absolute top-2 right-2 px-2 py-0.5 rounded bg-slate-950/85 border border-amber-400/50 text-amber-300 text-[10px] font-bold">+${dupeLv}</span>`
-                                : `<span class="absolute top-2 right-2 px-2 py-0.5 rounded bg-slate-950/85 text-slate-500 text-[10px] font-bold">미획득</span>`
-                            }
-                        </div>
-                        <div class="p-2.5 text-center">
-                            <div class="text-[10px] text-slate-400">${h.element} 속성</div>
-                            <div class="text-xs font-extrabold text-white truncate">${h.name}</div>
-                        </div>
-                    </div>
+                    <button onclick="selectBanner('${b.id}')" class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition ${
+                        active
+                            ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 border-amber-300 shadow-md'
+                            : 'bg-slate-900/90 text-slate-300 border-slate-800 hover:border-slate-600'
+                    }">
+                        ${b.shortName}
+                    </button>
                 `;
             }).join('');
-        }
 
-        function openHeroDetail(heroId) {
-            SoundEngine.click();
-            const h = HERO_POOL.find(item => item.id === heroId);
-            if (!h) return;
+            // 활성 배너 카드 갱신
+            const banner = BANNERS[gameState.activeBannerId] || categoryBanners[0];
+            const displayEl = document.getElementById('banner-display');
+            displayEl.className = `relative rounded-3xl overflow-hidden border ${banner.border} bg-gradient-to-br ${banner.gradient} shadow-2xl p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6`;
 
-            const count = gameState.inventory[h.id] || 0;
-            const stats = computeHeroCombatStats(h);
-            const content = document.getElementById('hero-detail-content');
+            document.getElementById('banner-tag').textContent = banner.tag;
+            document.getElementById('banner-title').innerHTML = banner.titleHtml;
 
-            content.innerHTML = `
-                <div class="relative w-32 h-32 mx-auto rounded-2xl overflow-hidden border-2 ${
-                    h.rarity === 'SSR' ? 'border-amber-400 ssr-aura' : h.rarity === 'SR' ? 'border-purple-400' : 'border-sky-400'
-                } bg-slate-950 flex items-center justify-center">
-                    ${renderHeroVisual(h, 'w-full h-full', 'text-6xl')}
-                </div>
-                <div>
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                        h.rarity === 'SSR' ? 'bg-amber-400/20 text-amber-300' : h.rarity === 'SR' ? 'bg-purple-500/20 text-purple-300' : 'bg-sky-500/20 text-sky-300'
-                    }">
-                        <span>${h.rarity} 등급</span> · <span>${h.element} 속성</span>
-                    </div>
-                    <h3 class="text-xl font-black text-white mt-1">${h.name}</h3>
-                    <p class="text-xs text-slate-400">${h.title}</p>
-                </div>
-                <p class="text-xs text-slate-300 bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5 leading-relaxed">
-                    ${h.desc}
-                </p>
-                <div class="grid grid-cols-3 gap-2 text-xs">
-                    <div class="bg-slate-950 rounded-xl p-2 border border-slate-800">
-                        <div class="text-[10px] text-slate-400">보유 / 돌파</div>
-                        <div class="font-extrabold text-amber-300">${count}회 (+${stats.dupeLevel})</div>
-                    </div>
-                    <div class="bg-slate-950 rounded-xl p-2 border border-slate-800">
-                        <div class="text-[10px] text-slate-400">토벌 체력</div>
-                        <div class="font-extrabold text-emerald-300">${stats.maxHp.toLocaleString()}</div>
-                    </div>
-                    <div class="bg-slate-950 rounded-xl p-2 border border-slate-800">
-                        <div class="text-[10px] text-slate-400">토벌 공격력</div>
-                        <div class="font-extrabold text-rose-300">${stats.atk.toLocaleString()}</div>
-                    </div>
-                </div>
-                <button onclick="closeModal('hero-detail-modal')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition">
-                    닫기
-                </button>
-            `;
-            document.getElementById('hero-detail-modal').classList.remove('hidden');
+            const artVisual = document.getElementById('banner-art-visual');
+            const heroLabel = document.getElementById('banner-hero-label');
+
+            if (banner.category === 'weapon') {
+                const wpn = WEAPON_POOL.find(w => w.id === banner.weaponId);
+                document.getElementById('banner-desc').textContent = wpn.desc;
+                artVisual.innerHTML = `<div class="text-7xl sm:text-8xl drop-shadow-[0_0_24px_rgba(244,63,94,0.8)]">${wpn.icon}</div>`;
+                heroLabel.textContent = `SSR 전용무기 · 공격력 +${wpn.atkBonus}`;
+            } else {
+                const hero = HERO_POOL.find(h => h.id === banner.heroId);
+                document.getElementById('banner-desc').textContent = hero.desc;
+                artVisual.innerHTML = renderHeroVisual(hero, 'w-full h-full object-cover object-top', 'text-7xl sm:text-8xl');
+                heroLabel.textContent = `SSR · ${hero.element} 속성`;
+            }
+
+            // 천장 게이지 갱신
+            const isWeapon = banner.category === 'weapon';
+            const pityCount = isWeapon ? gameState.pityWeapon : gameState.pityHero;
+            const guaranteed = isWeapon ? gameState.guaranteedWeapon : gameState.guaranteedHero;
+
+            document.getElementById('pity-current').textContent = pityCount;
+            document.getElementById('pity-bar').style.width = `${Math.min(100, (pityCount / 80) * 100)}%`;
+
+            const gBadge = document.getElementById('guaranteed-badge');
+            if (guaranteed && banner.type === 'limited') {
+                gBadge.classList.remove('hidden');
+            } else {
+                gBadge.classList.add('hidden');
+            }
+
+            // 소환 비용 표시 갱신
+            const cost1 = document.getElementById('cost-1-badge');
+            const cost10 = document.getElementById('cost-10-badge');
+            cost1.innerHTML = gameState.tickets >= 1
+                ? `<i class="fa-solid fa-ticket text-cyan-400"></i><span>1</span>`
+                : `<i class="fa-solid fa-gem text-fuchsia-400"></i><span>160</span>`;
+
+            if (gameState.tickets >= 10) {
+                cost10.innerHTML = `<i class="fa-solid fa-ticket text-cyan-400"></i><span>10</span>`;
+            } else if (gameState.tickets > 0) {
+                const needGems = (10 - gameState.tickets) * 160;
+                cost10.innerHTML = `<i class="fa-solid fa-ticket text-cyan-400"></i><span>${gameState.tickets}</span> + <i class="fa-solid fa-gem text-fuchsia-400"></i><span>${needGems.toLocaleString()}</span>`;
+            } else {
+                cost10.innerHTML = `<i class="fa-solid fa-gem text-fuchsia-400"></i><span>1,600</span>`;
+            }
+
+            // 최근 소환 로그
+            document.getElementById('total-pulls-text').textContent = `누적 소환: ${gameState.totalPulls.toLocaleString()}회`;
+            const histList = document.getElementById('recent-history-list');
+            if (gameState.history.length === 0) {
+                histList.innerHTML = `<span class="text-xs text-slate-500">아직 소환 기록이 없습니다. 위 버튼을 눌러 영웅을 소환해 보세요!</span>`;
+            } else {
+                histList.innerHTML = gameState.history.map(h => {
+                    const cls = h.rarity === 'SSR'
+                        ? 'bg-amber-400/20 border-amber-400/60 text-amber-200 font-extrabold'
+                        : (h.rarity === 'SR'
+                            ? 'bg-purple-500/20 border-purple-400/50 text-purple-200 font-bold'
+                            : 'bg-slate-800 border-slate-700 text-slate-300');
+                    return `<span class="px-2 py-0.5 rounded-md border text-[11px] ${cls}">${h.isWeapon ? '⚔️' : ''}${h.name}</span>`;
+                }).join('');
+            }
+
+            // 도감 수집률 배지
+            const unlockedCount = Object.keys(gameState.ownedHeroes).length;
+            const pct = Math.round((unlockedCount / HERO_POOL.length) * 100);
+            document.getElementById('codex-badge').textContent = `${pct}%`;
+            document.getElementById('codex-progress-text').textContent = `${unlockedCount} / ${HERO_POOL.length} (${pct}%)`;
+            const ssrOwned = HERO_POOL.filter(h => h.rarity === 'SSR' && gameState.ownedHeroes[h.id]).length;
+            document.getElementById('codex-ssr-count').textContent = `${ssrOwned}명`;
         }
 
         /**
-         * 9. 모달 유틸리티 및 재화/일러스트 관리
+         * 7. 탭 전환 & 모달 제어
          */
-        function openShopModal() {
-            SoundEngine.click();
-            document.getElementById('shop-modal').classList.remove('hidden');
+        function switchTab(tabName) {
+            SoundEngine.playClick();
+            const views = ['summon', 'battle', 'codex'];
+            views.forEach(v => {
+                const viewEl = document.getElementById(`view-${v}`);
+                const tabEl = document.getElementById(`tab-${v}`);
+                if (v === tabName) {
+                    viewEl.classList.remove('hidden');
+                    tabEl.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition';
+                } else {
+                    viewEl.classList.add('hidden');
+                    tabEl.className = 'px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800 transition';
+                }
+            });
+
+            if (tabName === 'codex') renderCodex();
+            if (tabName === 'battle') renderBattleSetup();
         }
 
-        function openRatesModal() {
-            SoundEngine.click();
-            document.getElementById('rates-modal').classList.remove('hidden');
-        }
-
-        function openResetModal() {
-            SoundEngine.click();
-            document.getElementById('reset-modal').classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            SoundEngine.click();
-            const el = document.getElementById(modalId);
-            if (el) el.classList.add('hidden');
-        }
+        function openShopModal() { document.getElementById('shop-modal').classList.remove('hidden'); }
+        function openRatesModal() { document.getElementById('rates-modal').classList.remove('hidden'); }
+        function openResetModal() { document.getElementById('reset-modal').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         function addCurrency(type, amount) {
-            SoundEngine.click();
+            SoundEngine.playHeal();
             if (type === 'gems') {
                 gameState.gems += amount;
                 showToast(`성정석 +${amount.toLocaleString()}개가 충전되었습니다!`, 'success');
@@ -1559,58 +1721,377 @@
         function exchangeTickets(count) {
             const cost = count * 160;
             if (gameState.gems < cost) {
-                showToast('성정석이 부족합니다!', 'error');
+                showToast(`성정석이 부족합니다. (필요: ${cost.toLocaleString()}개)`, 'error');
                 return;
             }
-            SoundEngine.click();
             gameState.gems -= cost;
             gameState.tickets += count;
+            SoundEngine.playClick();
+            showToast(`소환 티켓 ${count}장으로 교환했습니다!`, 'success');
             saveGameState();
             updateUI();
-            showToast(`성정석 ${cost.toLocaleString()}개로 티켓 ${count}장을 교환했습니다!`, 'success');
         }
 
+        function confirmResetData() {
+            const preservedArts = { ...gameState.customArts };
+            gameState = {
+                gems: 3200,
+                tickets: 10,
+                expPotions: 500,
+                soundEnabled: gameState.soundEnabled,
+                activeBannerId: 'banner_lim_1',
+                totalPulls: 0,
+                pityHero: 0,
+                guaranteedHero: false,
+                srPityHero: 0,
+                pityWeapon: 0,
+                guaranteedWeapon: false,
+                srPityWeapon: 0,
+                ownedHeroes: {},
+                ownedWeapons: {},
+                equippedWeapons: {},
+                customArts: preservedArts,
+                history: [],
+                party: [],
+                selectedStageId: 1,
+                battleClears: 0
+            };
+            saveGameState();
+            closeModal('reset-modal');
+            updateUI();
+            renderCodex();
+            renderBattleSetup();
+            showToast('소환 및 전투 데이터가 초기화되었습니다.', 'info');
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-950/95 border-emerald-500 text-emerald-100',
+                error: 'bg-rose-950/95 border-rose-500 text-rose-100',
+                info: 'bg-slate-900/95 border-indigo-500 text-slate-100'
+            };
+            el.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-2xl text-xs font-bold flex items-center gap-2 transition-all duration-300 ${colors[type] || colors.info}`;
+            el.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-400' : (type === 'error' ? 'fa-circle-exclamation text-rose-400' : 'fa-circle-info text-indigo-400')}"></i><span>${msg}</span>`;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(8px)';
+                setTimeout(() => el.remove(), 300);
+            }, 2800);
+        }
+
+        /**
+         * 8. 영웅 스탯 계산 (레벨 + 최대 6돌파 + 무기 장착 보너스)
+         */
+        function getMaxHeroLevel(breakthrough) {
+            return 20 + (breakthrough || 0) * 10; // 0돌 Lv.20 ~ 6돌 Lv.80
+        }
+
+        function getWeaponStats(weaponId, heroId = null) {
+            const wpn = WEAPON_POOL.find(w => w.id === weaponId);
+            const record = gameState.ownedWeapons[weaponId];
+            if (!wpn || !record) return { atk: 0, hp: 0, isSignature: false };
+
+            const btMult = 1 + (record.breakthrough || 0) * 0.15;
+            const isSignature = Boolean(heroId && wpn.ownerHeroId === heroId);
+            const sigMult = isSignature ? 1.25 : 1.0;
+
+            return {
+                atk: Math.round(wpn.atkBonus * btMult * sigMult),
+                hp: Math.round(wpn.hpBonus * btMult * sigMult),
+                isSignature
+            };
+        }
+
+        function getHeroCombatStats(heroId) {
+            const hero = HERO_POOL.find(h => h.id === heroId);
+            const record = gameState.ownedHeroes[heroId] || { breakthrough: 0, level: 1 };
+            const baseAtk = hero.rarity === 'SSR' ? 420 : (hero.rarity === 'SR' ? 270 : 170);
+            const baseHp = hero.rarity === 'SSR' ? 1650 : (hero.rarity === 'SR' ? 1150 : 780);
+
+            const lvl = record.level || 1;
+            const bt = record.breakthrough || 0;
+
+            const lvlMult = 1 + (lvl - 1) * 0.06;
+            const btMult = 1 + bt * 0.22; // 돌파 1단계당 +22% 스탯 증가
+
+            let atk = Math.round(baseAtk * lvlMult * btMult);
+            let maxHp = Math.round(baseHp * lvlMult * btMult);
+
+            const eqWpnId = gameState.equippedWeapons[heroId];
+            if (eqWpnId && gameState.ownedWeapons[eqWpnId]) {
+                const wStats = getWeaponStats(eqWpnId, heroId);
+                atk += wStats.atk;
+                maxHp += wStats.hp;
+            }
+
+            return {
+                atk,
+                maxHp,
+                level: lvl,
+                breakthrough: bt,
+                power: atk * 2 + Math.round(maxHp * 0.5)
+            };
+        }
+
+        /**
+         * 9. 영웅 도감 & 무기고 렌더링, 레벨업 및 무기 장착
+         */
+        function filterCodex(filter) {
+            currentCodexFilter = filter;
+            document.querySelectorAll('.codex-filter-btn').forEach(btn => {
+                if (btn.dataset.filter === filter) {
+                    btn.className = 'codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition';
+                } else {
+                    btn.className = 'codex-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition';
+                }
+            });
+            renderCodex();
+        }
+
+        function renderCodex() {
+            const grid = document.getElementById('codex-grid');
+            if (!grid) return;
+
+            if (currentCodexFilter === 'WEAPONS') {
+                grid.innerHTML = WEAPON_POOL.map(wpn => {
+                    const owned = gameState.ownedWeapons[wpn.id];
+                    const ownerHero = wpn.ownerHeroId ? HERO_POOL.find(h => h.id === wpn.ownerHeroId) : null;
+                    const borderCls = owned
+                        ? (wpn.rarity === 'SSR' ? 'border-amber-400/70 bg-slate-900' : (wpn.rarity === 'SR' ? 'border-purple-400/60 bg-slate-900' : 'border-slate-700 bg-slate-900'))
+                        : 'border-slate-800/80 bg-slate-950/60 opacity-55 grayscale';
+
+                    return `
+                        <div class="rounded-2xl border ${borderCls} p-3.5 flex flex-col justify-between gap-2 transition hover:border-rose-400/70">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-black ${wpn.rarity === 'SSR' ? 'bg-amber-400 text-slate-950' : (wpn.rarity === 'SR' ? 'bg-purple-500 text-white' : 'bg-slate-700 text-slate-200')}">${wpn.rarity}</span>
+                                <span class="text-[11px] font-bold ${owned ? 'text-amber-300' : 'text-slate-500'}">${owned ? `돌파 +${owned.breakthrough}/6` : '미획득'}</span>
+                            </div>
+                            <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-4xl my-1">
+                                ${wpn.icon}
+                            </div>
+                            <div class="text-center">
+                                <div class="text-[10px] text-rose-300 font-semibold truncate">${ownerHero ? `${ownerHero.name} 전용` : wpn.title}</div>
+                                <div class="text-xs font-extrabold text-white truncate">${wpn.name}</div>
+                                <div class="text-[10px] text-slate-400 mt-1">공격 +${wpn.atkBonus} · 체력 +${wpn.hpBonus}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                return;
+            }
+
+            const list = HERO_POOL.filter(h => currentCodexFilter === 'ALL' || h.rarity === currentCodexFilter);
+            grid.innerHTML = list.map(hero => {
+                const owned = gameState.ownedHeroes[hero.id];
+                const eqWpnId = gameState.equippedWeapons[hero.id];
+                const eqWpn = eqWpnId ? WEAPON_POOL.find(w => w.id === eqWpnId) : null;
+
+                const borderCls = owned
+                    ? (hero.rarity === 'SSR' ? 'border-amber-400/70 bg-slate-900 shadow-lg shadow-amber-950/20' : (hero.rarity === 'SR' ? 'border-purple-400/60 bg-slate-900' : 'border-slate-700 bg-slate-900'))
+                    : 'border-slate-800/80 bg-slate-950/60 opacity-50 grayscale';
+
+                return `
+                    <div onclick="openHeroDetail('${hero.id}')" class="cursor-pointer rounded-2xl border ${borderCls} p-3 flex flex-col justify-between gap-2 transition hover:-translate-y-0.5 hover:border-indigo-400">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-black ${hero.rarity === 'SSR' ? 'bg-amber-400 text-slate-950' : (hero.rarity === 'SR' ? 'bg-purple-500 text-white' : 'bg-slate-700 text-slate-200')}">${hero.rarity}</span>
+                            ${owned
+                                ? `<span class="text-[11px] font-extrabold text-amber-300">Lv.${owned.level || 1} (+${owned.breakthrough || 0})</span>`
+                                : `<span class="text-[10px] text-slate-500">미획득</span>`}
+                        </div>
+
+                        <div class="w-full h-32 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center">
+                            ${renderHeroVisual(hero, 'w-full h-full object-cover object-top', 'text-5xl')}
+                        </div>
+
+                        <div class="text-center">
+                            <div class="text-[10px] text-slate-400">${hero.element} 속성 ${eqWpn ? `· ${eqWpn.icon}` : ''}</div>
+                            <div class="text-xs font-extrabold text-white truncate">${hero.name}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openHeroDetail(heroId) {
+            const hero = HERO_POOL.find(h => h.id === heroId);
+            if (!hero) return;
+            const owned = gameState.ownedHeroes[heroId];
+            const content = document.getElementById('hero-detail-content');
+
+            if (!owned) {
+                content.innerHTML = `
+                    <div class="flex justify-end">
+                        <button onclick="closeModal('hero-detail-modal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                    </div>
+                    <div class="w-28 h-32 mx-auto rounded-2xl overflow-hidden bg-slate-950 border border-slate-700 flex items-center justify-center grayscale">
+                        ${renderHeroVisual(hero, 'w-full h-full object-cover object-top', 'text-5xl')}
+                    </div>
+                    <div>
+                        <span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold">${hero.rarity} · ${hero.element} 속성</span>
+                        <h3 class="text-xl font-black text-white mt-2">${hero.name}</h3>
+                        <p class="text-xs text-slate-400 mt-1">${hero.desc}</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400">
+                        아직 소환하지 못한 영웅입니다. 별의 소환에서 영웅을 획득해 보세요!
+                    </div>
+                `;
+                document.getElementById('hero-detail-modal').classList.remove('hidden');
+                return;
+            }
+
+            const stats = getHeroCombatStats(heroId);
+            const maxLvl = getMaxHeroLevel(stats.breakthrough);
+            const expCost = stats.level * 50;
+            const eqWpnId = gameState.equippedWeapons[heroId] || '';
+
+            const ownedWpnOptions = Object.keys(gameState.ownedWeapons).map(wId => {
+                const w = WEAPON_POOL.find(item => item.id === wId);
+                const wRec = gameState.ownedWeapons[wId];
+                if (!w) return '';
+                const isSig = w.ownerHeroId === heroId;
+                return `<option value="${wId}" ${eqWpnId === wId ? 'selected' : ''}>[${w.rarity}] ${w.name} (+${wRec.breakthrough})${isSig ? ' ★전용' : ''}</option>`;
+            }).join('');
+
+            content.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-black">
+                        ${hero.rarity} · 한계돌파 +${stats.breakthrough}/6
+                    </span>
+                    <button onclick="closeModal('hero-detail-modal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+
+                <div class="w-28 h-32 mx-auto rounded-2xl overflow-hidden bg-slate-950 border-2 border-indigo-500/50 flex items-center justify-center shadow-lg">
+                    ${renderHeroVisual(hero, 'w-full h-full object-cover object-top', 'text-5xl')}
+                </div>
+
+                <div>
+                    <div class="text-xs text-indigo-300 font-bold">${hero.title} · ${hero.element} 속성</div>
+                    <h3 class="text-xl font-black text-white">${hero.name}</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">${hero.desc}</p>
+                </div>
+
+                <!-- 스탯 및 레벨업 -->
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3.5 text-left space-y-2.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-300">레벨 <strong class="text-emerald-300 text-sm">Lv.${stats.level}</strong> / ${maxLvl}</span>
+                        <span class="text-amber-300 font-extrabold">전투력 ${stats.power.toLocaleString()}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-slate-900 rounded-xl p-2 border border-slate-800">
+                            <div class="text-[10px] text-slate-400">공격력</div>
+                            <div class="font-black text-rose-300">${stats.atk.toLocaleString()}</div>
+                        </div>
+                        <div class="bg-slate-900 rounded-xl p-2 border border-slate-800">
+                            <div class="text-[10px] text-slate-400">최대 생명력</div>
+                            <div class="font-black text-emerald-300">${stats.maxHp.toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <button onclick="levelUpHero('${heroId}')" ${stats.level >= maxLvl ? 'disabled' : ''} class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        <span>${stats.level >= maxLvl ? '현재 돌파 최대 레벨 도달' : `레벨 업 (별의 정수 ${expCost}개 소모)`}</span>
+                    </button>
+                </div>
+
+                <!-- 무기 장착 -->
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3 text-left space-y-1.5">
+                    <label class="text-[11px] font-bold text-rose-300 flex items-center gap-1">
+                        <i class="fa-solid fa-khanda"></i> 장착 무기 선택 (전용 무기 장착 시 +25%)
+                    </label>
+                    <select onchange="equipWeaponToHero('${heroId}', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        <option value="">-- 무기 미장착 --</option>
+                        ${ownedWpnOptions}
+                    </select>
+                </div>
+            `;
+
+            document.getElementById('hero-detail-modal').classList.remove('hidden');
+        }
+
+        function levelUpHero(heroId) {
+            const owned = gameState.ownedHeroes[heroId];
+            if (!owned) return;
+            const maxLvl = getMaxHeroLevel(owned.breakthrough || 0);
+            if ((owned.level || 1) >= maxLvl) {
+                showToast('현재 돌파 단계의 최대 레벨입니다. 중복 소환으로 돌파를 올려주세요!', 'info');
+                return;
+            }
+            const cost = (owned.level || 1) * 50;
+            if (gameState.expPotions < cost) {
+                showToast(`별의 정수가 부족합니다! (필요: ${cost}개) 성좌 토벌전에서 획득하세요.`, 'error');
+                return;
+            }
+            gameState.expPotions -= cost;
+            owned.level = (owned.level || 1) + 1;
+            SoundEngine.playHeal();
+            saveGameState();
+            updateUI();
+            renderCodex();
+            renderBattleSetup();
+            openHeroDetail(heroId);
+            showToast(`레벨 업 성공! Lv.${owned.level} 달성`, 'success');
+        }
+
+        function equipWeaponToHero(heroId, weaponId) {
+            if (!weaponId) {
+                delete gameState.equippedWeapons[heroId];
+            } else {
+                // 다른 영웅이 끼고 있으면 해제
+                Object.keys(gameState.equippedWeapons).forEach(hId => {
+                    if (gameState.equippedWeapons[hId] === weaponId) {
+                        delete gameState.equippedWeapons[hId];
+                    }
+                });
+                gameState.equippedWeapons[heroId] = weaponId;
+            }
+            SoundEngine.playClick();
+            saveGameState();
+            renderCodex();
+            renderBattleSetup();
+            openHeroDetail(heroId);
+            showToast('무기 장착 정보가 업데이트되었습니다.', 'success');
+        }
+
+        /**
+         * 10. 일러스트 직접 등록/관리 모달
+         */
         function openArtManagerModal() {
-            SoundEngine.click();
             renderArtManagerList();
             document.getElementById('art-manager-modal').classList.remove('hidden');
         }
 
         function renderArtManagerList() {
             const listEl = document.getElementById('art-manager-list');
-            if (!listEl) return;
-
-            listEl.innerHTML = HERO_POOL.map(h => {
-                const customSrc = (gameState.customImages && gameState.customImages[h.id]) || '';
-                const hasCustom = customSrc.length > 0;
+            listEl.innerHTML = HERO_POOL.map(hero => {
+                const currentSrc = getHeroImageSrc(hero);
+                const hasCustom = Boolean(gameState.customArts && gameState.customArts[hero.id]);
                 return `
-                    <div class="p-3 rounded-2xl bg-slate-950/90 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-12 h-12 rounded-xl overflow-hidden border border-slate-700 bg-slate-900 shrink-0 flex items-center justify-center">
-                                ${renderHeroVisual(h, 'w-full h-full', 'text-2xl')}
+                            <div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0">
+                                ${renderHeroVisual(hero, 'w-full h-full object-cover object-top', 'text-2xl')}
                             </div>
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="text-[10px] font-black px-1.5 py-0.5 rounded ${
-                                        h.rarity === 'SSR' ? 'bg-amber-400 text-slate-950' : h.rarity === 'SR' ? 'bg-purple-500 text-white' : 'bg-sky-600 text-white'
-                                    }">${h.rarity}</span>
-                                    <span class="font-bold text-xs sm:text-sm text-white truncate">${h.name}</span>
+                                    <span class="text-[10px] font-black px-1.5 py-0.5 rounded ${hero.rarity === 'SSR' ? 'bg-amber-400 text-slate-950' : (hero.rarity === 'SR' ? 'bg-purple-500 text-white' : 'bg-slate-700 text-slate-200')}">${hero.rarity}</span>
+                                    <span class="text-xs font-extrabold text-white truncate">${hero.name}</span>
                                 </div>
-                                <div class="text-[11px] text-slate-400 truncate mt-0.5">
-                                    ${hasCustom ? '사용자 지정 이미지 적용 중' : (h.image ? `기본 파일: ${h.image}` : '기본 아이콘 / 자동 탐색')}
-                                </div>
+                                <div class="text-[10px] text-slate-400 truncate mt-0.5">${currentSrc ? currentSrc.slice(0, 48) : '기본 아이콘 사용 중'}</div>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="triggerHeroArtUpload('${h.id}')" class="px-2.5 py-1.5 rounded-lg bg-pink-600/30 hover:bg-pink-600/50 border border-pink-500/40 text-pink-200 text-xs font-bold transition">
-                                <i class="fa-solid fa-upload mr-1"></i>파일 선택
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="triggerArtFileSelect('${hero.id}')" class="px-2.5 py-1.5 rounded-lg bg-pink-600/30 hover:bg-pink-600/50 border border-pink-500/50 text-pink-200 text-[11px] font-bold transition">
+                                파일 선택
                             </button>
-                            <button onclick="promptHeroArtUrl('${h.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition">
-                                경로/URL
+                            <button onclick="promptArtUrlInput('${hero.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-bold transition">
+                                URL 입력
                             </button>
                             ${hasCustom ? `
-                                <button onclick="clearHeroArt('${h.id}')" class="p-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-rose-300 text-xs transition" title="등록 이미지 초기화">
+                                <button onclick="resetCustomArt('${hero.id}')" class="w-7 h-7 rounded-lg bg-rose-950 hover:bg-rose-800 text-rose-300 flex items-center justify-center text-xs" title="초기화">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             ` : ''}
@@ -1620,8 +2101,8 @@
             }).join('');
         }
 
-        function triggerHeroArtUpload(heroId) {
-            pendingArtHeroId = heroId;
+        function triggerArtFileSelect(heroId) {
+            activeArtTargetHeroId = heroId;
             const input = document.getElementById('hero-art-file-input');
             input.value = '';
             input.click();
@@ -1629,591 +2110,523 @@
 
         function handleHeroArtFileSelect(event) {
             const file = event.target.files && event.target.files[0];
-            if (!file || !pendingArtHeroId) return;
+            if (!file || !activeArtTargetHeroId) return;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const maxDim = 480;
+                    const maxDim = 512;
                     let w = img.width;
                     let h = img.height;
                     if (w > maxDim || h > maxDim) {
-                        if (w > h) {
-                            h = Math.round((h * maxDim) / w);
-                            w = maxDim;
-                        } else {
-                            w = Math.round((w * maxDim) / h);
-                            h = maxDim;
-                        }
+                        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                        else { w = Math.round((w * maxDim) / h); h = maxDim; }
                     }
                     canvas.width = w;
                     canvas.height = h;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, w, h);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                    const compressed = canvas.toDataURL('image/jpeg', 0.85);
 
-                    if (!gameState.customImages) gameState.customImages = {};
-                    gameState.customImages[pendingArtHeroId] = dataUrl;
+                    gameState.customArts[activeArtTargetHeroId] = compressed;
                     saveGameState();
-                    renderArtManagerList();
                     updateUI();
                     renderCodex();
-                    showToast('일러스트가 등록되었습니다!', 'success');
+                    renderArtManagerList();
+                    showToast('캐릭터 일러스트가 등록되었습니다!', 'success');
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        function promptHeroArtUrl(heroId) {
+        function promptArtUrlInput(heroId) {
             const hero = HERO_POOL.find(h => h.id === heroId);
-            if (!hero) return;
-            const current = (gameState.customImages && gameState.customImages[heroId]) || hero.image || '';
-            const inputUrl = window.prompt(`[${hero.name}]의 이미지 경로(예: ./my_image.jpg) 또는 URL을 입력하세요:`, current);
-            if (inputUrl === null) return;
-
-            if (!gameState.customImages) gameState.customImages = {};
-            if (inputUrl.trim() === '') {
-                delete gameState.customImages[heroId];
-            } else {
-                gameState.customImages[heroId] = inputUrl.trim();
-            }
-            saveGameState();
-            renderArtManagerList();
-            updateUI();
-            renderCodex();
-            showToast('일러스트 경로가 업데이트되었습니다!', 'success');
-        }
-
-        function clearHeroArt(heroId) {
-            if (gameState.customImages && gameState.customImages[heroId]) {
-                delete gameState.customImages[heroId];
+            const url = window.prompt(`${hero ? hero.name : ''}의 이미지 URL 또는 깃허브 파일명(예: ./celestia.jpg)을 입력하세요:`, getHeroImageSrc(hero));
+            if (url !== null && url.trim() !== '') {
+                gameState.customArts[heroId] = url.trim();
                 saveGameState();
-                renderArtManagerList();
                 updateUI();
                 renderCodex();
-                showToast('사용자 등록 일러스트가 초기화되었습니다.', 'info');
+                renderArtManagerList();
+                showToast('일러스트 경로가 저장되었습니다!', 'success');
             }
         }
 
-        function confirmResetData() {
-            const preservedCustomImages = gameState.customImages || {};
-            localStorage.removeItem('astral_gacha_save_v2');
-            gameState = {
-                gems: 3200,
-                tickets: 10,
-                activeBannerId: 'banner_lim_1',
-                limitedPity: 0,
-                limitedSrPity: 0,
-                limitedGuaranteed: false,
-                limitedTotalPulls: 0,
-                standardPity: 0,
-                standardSrPity: 0,
-                standardTotalPulls: 0,
-                inventory: {},
-                customImages: preservedCustomImages,
-                partyIds: [],
-                battleClears: 0,
-                muted: gameState.muted
-            };
+        function resetCustomArt(heroId) {
+            delete gameState.customArts[heroId];
             saveGameState();
-            closeModal('reset-modal');
             updateUI();
             renderCodex();
-            renderBattleSetup();
-            showToast('소환 기록이 초기화되었습니다. (등록한 일러스트는 유지됩니다)', 'info');
+            renderArtManagerList();
+            showToast('기본 일러스트로 복원되었습니다.', 'info');
         }
 
         /**
-         * 10. 성좌 토벌전 (보유 캐릭터 4인 파티 턴제 RPG 배틀) 로직
+         * 11. 성좌 토벌전 (4인 파티 턴제 RPG 배틀 시스템 - STAGE 1 ~ 7)
          */
-        const BATTLE_STAGES = [
-            { id: 'stage_1', name: 'STAGE 1 · 성운의 외곽', bossName: '심연의 슬라임 킹', icon: '👑', element: '물', hp: 4200, atk: 340, rewardGems: 320, rewardTickets: 1, recommended: 1800 },
-            { id: 'stage_2', name: 'STAGE 2 · 불타는 용의 협곡', bossName: '흑염의 수호룡 바하무트', icon: '🐲', element: '화염', hp: 9500, atk: 680, rewardGems: 640, rewardTickets: 2, recommended: 4200 },
-            { id: 'stage_3', name: 'STAGE 3 · 차원의 균열', bossName: '공허의 심판관 아자젤', icon: '👁️', element: '공허', hp: 18500, atk: 1150, rewardGems: 1120, rewardTickets: 3, recommended: 8500 },
-            { id: 'stage_4', name: 'STAGE 4 · 종말의 성좌', bossName: '파멸의 성좌룡 오메가', icon: '🌌', element: '어둠', hp: 34000, atk: 1850, rewardGems: 1600, rewardTickets: 5, recommended: 15000 }
+        const STAGES = [
+            { id: 1, name: 'STAGE 1 · 심연의 슬라임 킹', bossName: '심연의 슬라임 킹', icon: '👑', element: '물', weakTo: '풀', hp: 3200, atk: 240, rewardGems: 320, rewardTickets: 1, rewardExp: 150 },
+            { id: 2, name: 'STAGE 2 · 고대 숲의 바위 거신', bossName: '바위 거신 골리앗', icon: '🗿', element: '대지', weakTo: '바람', hp: 6500, atk: 420, rewardGems: 480, rewardTickets: 1, rewardExp: 300 },
+            { id: 3, name: 'STAGE 3 · 지옥불 화염 드래곤', bossName: '업화의 마룡 발록', icon: '🐲', element: '화염', weakTo: '물', hp: 11500, atk: 680, rewardGems: 640, rewardTickets: 2, rewardExp: 550 },
+            { id: 4, name: 'STAGE 4 · 심연의 타락천사 루시퍼', bossName: '타락천사 루시퍼', icon: '😈', element: '어둠', weakTo: '빛', hp: 18500, atk: 980, rewardGems: 960, rewardTickets: 2, rewardExp: 900 },
+            { id: 5, name: 'STAGE 5 · 타락한 뇌신 수르트', bossName: '뇌신 수르트', icon: '⚡', element: '번개', weakTo: '대지', hp: 28000, atk: 1380, rewardGems: 1280, rewardTickets: 3, rewardExp: 1400 },
+            { id: 6, name: 'STAGE 6 · 절대영도의 군주 니플헤임', bossName: '빙결군주 니플헤임', icon: '🥶', element: '얼음', weakTo: '화염', hp: 41000, atk: 1850, rewardGems: 1600, rewardTickets: 4, rewardExp: 2100 },
+            { id: 7, name: 'STAGE 7 · 창세의 성좌신 아스트랄', bossName: '성좌신 아스트랄', icon: '🌌', element: '공허', weakTo: '빛', hp: 60000, atk: 2450, rewardGems: 2400, rewardTickets: 5, rewardExp: 3200 }
         ];
 
         const ELEMENT_ADVANTAGE = {
-            '화염': '풀', '풀': '물', '물': '화염',
-            '번개': '물', '얼음': '바람', '바람': '대지', '대지': '번개',
-            '빛': '어둠', '어둠': '빛', '공허': '빛'
+            '화염': '풀',
+            '풀': '물',
+            '물': '화염',
+            '빛': '어둠',
+            '어둠': '빛',
+            '번개': '물',
+            '얼음': '바람',
+            '바람': '대지',
+            '대지': '번개',
+            '공허': '공허'
         };
 
-        let selectedStageId = 'stage_1';
-        let battleState = null;
-        let autoBattle = false;
-        let autoBattleTimer = null;
+        let battleState = {
+            active: false,
+            auto: false,
+            stage: null,
+            bossHp: 0,
+            bossMaxHp: 0,
+            turnCount: 1,
+            units: [],
+            activeUnitIdx: 0,
+            busy: false
+        };
 
-        function computeHeroCombatStats(hero) {
-            const count = gameState.inventory[hero.id] || 0;
-            const dupeBonus = Math.max(0, count - 1);
-            const mult = 1 + dupeBonus * 0.18;
-
-            const baseByRarity = {
-                SSR: { hp: 2800, atk: 780 },
-                SR: { hp: 2000, atk: 520 },
-                R: { hp: 1400, atk: 340 }
-            };
-            const base = baseByRarity[hero.rarity] || baseByRarity.R;
-            const isHealer = ['lim_1', 'std_3', 'r_4', 'r_6'].includes(hero.id);
-
-            return {
-                maxHp: Math.round(base.hp * mult),
-                atk: Math.round(base.atk * mult),
-                power: Math.round((base.hp * 0.4 + base.atk * 2.2) * mult),
-                dupeLevel: dupeBonus,
-                isHealer
-            };
-        }
-
-        function ensureValidParty() {
-            if (!Array.isArray(gameState.partyIds)) gameState.partyIds = [];
-            gameState.partyIds = gameState.partyIds.filter(id => (gameState.inventory[id] || 0) > 0);
-            if (gameState.partyIds.length === 0) {
-                autoEquipBestParty(true);
-            }
-        }
-
-        function autoEquipBestParty(silent = false) {
-            const ownedHeroes = HERO_POOL.filter(h => (gameState.inventory[h.id] || 0) > 0);
-            ownedHeroes.sort((a, b) => computeHeroCombatStats(b).power - computeHeroCombatStats(a).power);
-            gameState.partyIds = ownedHeroes.slice(0, 4).map(h => h.id);
+        function selectStage(stageId) {
+            gameState.selectedStageId = stageId;
+            SoundEngine.playClick();
             saveGameState();
-            if (!silent) {
-                SoundEngine.click();
-                renderBattleSetup();
-                showToast('가장 강력한 영웅들로 파티가 자동 편성되었습니다!', 'info');
-            }
+            renderBattleSetup();
         }
 
-        function toggleHeroInParty(heroId) {
-            SoundEngine.click();
-            if (!Array.isArray(gameState.partyIds)) gameState.partyIds = [];
-            const idx = gameState.partyIds.indexOf(heroId);
+        function togglePartyMember(heroId) {
+            if (!gameState.ownedHeroes[heroId]) return;
+            const idx = gameState.party.indexOf(heroId);
             if (idx >= 0) {
-                gameState.partyIds.splice(idx, 1);
+                gameState.party.splice(idx, 1);
             } else {
-                if (gameState.partyIds.length >= 4) {
-                    showToast('파티는 최대 4명까지 편성할 수 있습니다.', 'error');
+                if (gameState.party.length >= 4) {
+                    showToast('파티는 최대 4명까지 편성할 수 있습니다.', 'info');
                     return;
                 }
-                gameState.partyIds.push(heroId);
+                gameState.party.push(heroId);
             }
+            SoundEngine.playClick();
             saveGameState();
             renderBattleSetup();
         }
 
-        function selectBattleStage(stageId) {
-            SoundEngine.click();
-            selectedStageId = stageId;
+        function autoEquipBestParty() {
+            const ownedIds = Object.keys(gameState.ownedHeroes);
+            if (ownedIds.length === 0) {
+                showToast('먼저 별의 소환에서 영웅을 소환해 주세요!', 'error');
+                return;
+            }
+            ownedIds.sort((a, b) => getHeroCombatStats(b).power - getHeroCombatStats(a).power);
+            gameState.party = ownedIds.slice(0, 4);
+            SoundEngine.playSrReveal();
+            saveGameState();
             renderBattleSetup();
+            showToast('가장 전투력이 높은 영웅 4명으로 자동 편성되었습니다!', 'success');
         }
 
         function renderBattleSetup() {
-            ensureValidParty();
-
-            const clearBadge = document.getElementById('battle-clear-badge');
-            if (clearBadge) clearBadge.textContent = `클리어 ${gameState.battleClears || 0}회`;
-
-            // 1) 스테이지 목록
             const stageListEl = document.getElementById('stage-selector-list');
-            if (stageListEl) {
-                stageListEl.innerHTML = BATTLE_STAGES.map(st => {
-                    const active = st.id === selectedStageId;
-                    return `
-                        <div onclick="selectBattleStage('${st.id}')" class="cursor-pointer rounded-2xl p-3 border transition flex items-center justify-between ${active ? 'bg-rose-950/50 border-rose-400 shadow-md' : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'}">
-                            <div class="flex items-center gap-2.5">
-                                <span class="text-2xl">${st.icon}</span>
-                                <div>
-                                    <div class="text-[10px] font-bold text-rose-300">${st.name} · ${st.element} 속성</div>
-                                    <div class="font-extrabold text-xs sm:text-sm text-white">${st.bossName}</div>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-[10px] text-slate-400">권장 전투력 ${st.recommended.toLocaleString()}</div>
-                                <div class="text-[11px] font-bold text-amber-300">💎${st.rewardGems} + 🎟️${st.rewardTickets}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            // 2) 선택된 파티 4슬롯 & 총 전투력
             const slotsEl = document.getElementById('selected-party-slots');
-            let totalPower = 0;
-            if (slotsEl) {
-                const slotsHtml = [];
-                for (let i = 0; i < 4; i++) {
-                    const hid = gameState.partyIds[i];
-                    const hero = HERO_POOL.find(h => h.id === hid);
-                    if (hero) {
-                        const st = computeHeroCombatStats(hero);
-                        totalPower += st.power;
-                        slotsHtml.push(`
-                            <div onclick="toggleHeroInParty('${hero.id}')" class="cursor-pointer rounded-2xl border border-amber-400/60 bg-slate-950/90 p-2.5 flex flex-col items-center text-center relative hover:border-rose-400 transition">
-                                <span class="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-amber-300 font-bold">+${st.dupeLevel}</span>
-                                <div class="w-14 h-14 rounded-xl overflow-hidden border border-slate-700 mb-1.5 bg-slate-900 flex items-center justify-center">
-                                    ${renderHeroVisual(hero, 'w-full h-full', 'text-2xl')}
-                                </div>
-                                <div class="font-bold text-xs text-white truncate w-full">${hero.name}</div>
-                                <div class="text-[10px] text-cyan-300">${hero.element} · ATK ${st.atk}</div>
-                            </div>
-                        `);
-                    } else {
-                        slotsHtml.push(`
-                            <div class="rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 p-2.5 flex flex-col items-center justify-center text-center min-h-[118px] text-slate-500">
-                                <i class="fa-solid fa-user-plus text-lg mb-1"></i>
-                                <span class="text-[11px]">빈 슬롯</span>
-                            </div>
-                        `);
-                    }
-                }
-                slotsEl.innerHTML = slotsHtml.join('');
-            }
-
-            const powerEl = document.getElementById('party-power-text');
-            if (powerEl) powerEl.textContent = `파티 전투력: ${totalPower.toLocaleString()}`;
-
-            // 3) 보유 영웅 로스터
             const rosterEl = document.getElementById('owned-heroes-roster');
-            if (rosterEl) {
-                const owned = HERO_POOL.filter(h => (gameState.inventory[h.id] || 0) > 0);
-                if (owned.length === 0) {
-                    rosterEl.innerHTML = `<div class="col-span-full text-center py-6 text-xs text-slate-400">보유 중인 영웅이 없습니다. 먼저 [별의 소환]에서 영웅을 소환해 주세요!</div>`;
-                } else {
-                    rosterEl.innerHTML = owned.map(h => {
-                        const inParty = gameState.partyIds.includes(h.id);
-                        const st = computeHeroCombatStats(h);
-                        return `
-                            <div onclick="toggleHeroInParty('${h.id}')" class="cursor-pointer rounded-xl p-2 border text-center transition ${inParty ? 'bg-indigo-950/90 border-cyan-400 ring-1 ring-cyan-400' : 'bg-slate-950/80 border-slate-800 hover:border-slate-600'}">
-                                <div class="text-xl mb-0.5">${h.icon}</div>
-                                <div class="text-[10px] font-bold text-white truncate">${h.name.split(' ').pop()}</div>
-                                <div class="text-[9px] ${h.rarity === 'SSR' ? 'text-amber-400' : h.rarity === 'SR' ? 'text-purple-400' : 'text-sky-400'} font-bold">${h.rarity} +${st.dupeLevel}</div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-            }
-        }
+            if (!stageListEl || !slotsEl || !rosterEl) return;
 
-        function startBattle() {
-            ensureValidParty();
-            if (gameState.partyIds.length === 0) {
-                showToast('출격할 영웅이 없습니다! 먼저 소환을 진행해 주세요.', 'error');
-                return;
-            }
+            document.getElementById('battle-clear-badge').textContent = `클리어 ${gameState.battleClears}회`;
 
-            SoundEngine.summonStart();
-            const stage = BATTLE_STAGES.find(s => s.id === selectedStageId) || BATTLE_STAGES[0];
-            const units = gameState.partyIds.map(id => {
-                const hero = HERO_POOL.find(h => h.id === id);
-                const st = computeHeroCombatStats(hero);
-                return {
-                    hero,
-                    hp: st.maxHp,
-                    maxHp: st.maxHp,
-                    atk: st.atk,
-                    energy: 50,
-                    isHealer: st.isHealer
-                };
-            });
+            // 유효한 보유 영웅만 파티에 유지
+            gameState.party = gameState.party.filter(id => Boolean(gameState.ownedHeroes[id]));
 
-            battleState = {
-                stage,
-                bossHp: stage.hp,
-                bossMaxHp: stage.hp,
-                bossAtk: stage.atk,
-                units,
-                activeUnitIdx: 0,
-                turnCount: 1,
-                finished: false
-            };
-
-            document.getElementById('battle-arena-panel').classList.remove('hidden');
-            const logBox = document.getElementById('battle-log-box');
-            logBox.innerHTML = `<div class="text-amber-300 font-bold">⚔️ [${stage.name}] ${stage.bossName} 출현! 전투를 시작합니다!</div>`;
-
-            renderBattleArena();
-            document.getElementById('battle-arena-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        function appendBattleLog(htmlText) {
-            const logBox = document.getElementById('battle-log-box');
-            if (!logBox) return;
-            const line = document.createElement('div');
-            line.innerHTML = htmlText;
-            logBox.appendChild(line);
-            logBox.scrollTop = logBox.scrollHeight;
-        }
-
-        function renderBattleArena() {
-            if (!battleState) return;
-            const { stage, bossHp, bossMaxHp, units, activeUnitIdx } = battleState;
-
-            document.getElementById('boss-avatar-box').textContent = stage.icon;
-            document.getElementById('boss-element-badge').textContent = `${stage.element} 속성 BOSS`;
-            document.getElementById('boss-stage-name').textContent = stage.name;
-            document.getElementById('boss-name').textContent = stage.bossName;
-            document.getElementById('boss-hp-text').textContent = `${Math.max(0, bossHp).toLocaleString()} / ${bossMaxHp.toLocaleString()}`;
-            document.getElementById('boss-hp-bar').style.width = `${Math.max(0, (bossHp / bossMaxHp) * 100)}%`;
-
-            const partyEl = document.getElementById('battle-party-cards');
-            partyEl.innerHTML = units.map((u, idx) => {
-                const isAlive = u.hp > 0;
-                const isTurn = isAlive && idx === activeUnitIdx && !battleState.finished;
-                const hpPct = Math.max(0, (u.hp / u.maxHp) * 100);
+            // 스테이지 목록
+            stageListEl.innerHTML = STAGES.map(st => {
+                const selected = st.id === gameState.selectedStageId;
                 return `
-                    <div id="battle-unit-card-${idx}" class="rounded-2xl p-3 border transition-all ${!isAlive ? 'bg-slate-950/60 border-slate-800 opacity-45 grayscale' : isTurn ? 'bg-indigo-950/90 border-amber-400 shadow-lg shadow-amber-500/20 -translate-y-1' : 'bg-slate-900/90 border-slate-700'}">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-[10px] font-black px-1.5 py-0.5 rounded ${u.hero.rarity === 'SSR' ? 'bg-amber-400 text-slate-950' : u.hero.rarity === 'SR' ? 'bg-purple-500 text-white' : 'bg-sky-600 text-white'}">${u.hero.rarity}</span>
-                            <span class="text-[10px] font-bold ${isTurn ? 'text-amber-300 animate-pulse' : 'text-slate-400'}">${!isAlive ? '전투불능' : isTurn ? '▶ 행동 차례' : u.hero.element}</span>
-                        </div>
-                        <div class="flex items-center gap-2.5 mb-2">
-                            <div class="w-12 h-12 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 shrink-0 flex items-center justify-center">
-                                ${renderHeroVisual(u.hero, 'w-full h-full', 'text-2xl')}
-                            </div>
+                    <div onclick="selectStage(${st.id})" class="cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between gap-2 ${
+                        selected
+                            ? 'bg-rose-950/50 border-rose-500 shadow-md'
+                            : 'bg-slate-950/70 border-slate-800 hover:border-slate-600'
+                    }">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="text-2xl">${st.icon}</span>
                             <div class="min-w-0">
-                                <div class="font-extrabold text-xs text-white truncate">${u.hero.name}</div>
-                                <div class="text-[10px] text-slate-400">${u.isHealer ? '치유/서포트' : '공격형'} · ATK ${u.atk}</div>
+                                <div class="text-xs font-extrabold text-white truncate">${st.name}</div>
+                                <div class="text-[10px] text-slate-400">속성: ${st.element} (약점: <span class="text-amber-300 font-bold">${st.weakTo}</span>) · HP ${st.hp.toLocaleString()}</div>
                             </div>
                         </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[10px]">
-                                <span class="text-emerald-300">HP</span>
-                                <span class="text-slate-200 tabular-nums">${Math.max(0, u.hp)}/${u.maxHp}</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                <div class="h-full bg-emerald-400 transition-all duration-300" style="width: ${hpPct}%"></div>
-                            </div>
-                            <div class="flex justify-between text-[10px]">
-                                <span class="text-amber-300">필살기</span>
-                                <span class="text-amber-200 font-bold">${u.energy}%</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-300" style="width: ${u.energy}%"></div>
-                            </div>
+                        <div class="text-right shrink-0 text-[10px] font-bold text-emerald-300">
+                            <div>💎+${st.rewardGems} 🎫+${st.rewardTickets}</div>
+                            <div>🧪+${st.rewardExp} EXP</div>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            const activeUnit = units[activeUnitIdx];
-            const turnLabel = document.getElementById('active-turn-label');
-            const basicBtn = document.getElementById('btn-basic-skill');
-            const ultBtn = document.getElementById('btn-ult-skill');
-            const ultDesc = document.getElementById('ult-skill-desc');
+            // 4인 파티 슬롯
+            let totalPower = 0;
+            const slotCards = [];
+            for (let i = 0; i < 4; i++) {
+                const hId = gameState.party[i];
+                if (hId && gameState.ownedHeroes[hId]) {
+                    const hero = HERO_POOL.find(h => h.id === hId);
+                    const stats = getHeroCombatStats(hId);
+                    totalPower += stats.power;
+                    slotCards.push(`
+                        <div onclick="togglePartyMember('${hId}')" class="cursor-pointer rounded-2xl bg-slate-950 border border-indigo-500/50 p-2.5 flex flex-col items-center text-center relative group hover:border-rose-500 transition">
+                            <span class="absolute top-1.5 right-1.5 text-[10px] text-slate-500 group-hover:text-rose-400"><i class="fa-solid fa-xmark"></i></span>
+                            <div class="w-14 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center mb-1.5">
+                                ${renderHeroVisual(hero, 'w-full h-full object-cover object-top', 'text-3xl')}
+                            </div>
+                            <div class="text-[10px] font-bold text-amber-300">Lv.${stats.level} (+${stats.breakthrough})</div>
+                            <div class="text-xs font-extrabold text-white truncate w-full">${hero.name}</div>
+                            <div class="text-[10px] text-slate-400">전투력 ${stats.power.toLocaleString()}</div>
+                        </div>
+                    `);
+                } else {
+                    slotCards.push(`
+                        <div class="rounded-2xl bg-slate-950/50 border border-dashed border-slate-800 p-2.5 flex flex-col items-center justify-center text-center min-h-[126px] text-slate-600">
+                            <i class="fa-solid fa-user-plus text-lg mb-1"></i>
+                            <span class="text-[11px] font-bold">빈 슬롯 ${i + 1}</span>
+                        </div>
+                    `);
+                }
+            }
+            slotsEl.innerHTML = slotCards.join('');
+            document.getElementById('party-power-text').textContent = `파티 전투력: ${totalPower.toLocaleString()}`;
 
-            if (battleState.finished || !activeUnit) {
-                turnLabel.textContent = '전투 종료';
-                basicBtn.disabled = true;
-                ultBtn.disabled = true;
+            // 보유 영웅 로스터
+            const ownedIds = Object.keys(gameState.ownedHeroes);
+            if (ownedIds.length === 0) {
+                rosterEl.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-slate-500">보유 중인 영웅이 없습니다. 먼저 [별의 소환] 탭에서 영웅을 소환해 주세요!</div>`;
             } else {
-                turnLabel.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-amber-300 mr-1"></i>[${activeUnit.hero.name}]의 차례!`;
-                basicBtn.disabled = false;
-                ultBtn.disabled = activeUnit.energy < 100;
-                ultDesc.textContent = activeUnit.energy >= 100
-                    ? (activeUnit.isHealer ? '아군 전체 대치유 + 강타!' : '초강력 2.65배 성좌 일격!')
-                    : `게이지 ${activeUnit.energy}% / 100%`;
+                ownedIds.sort((a, b) => getHeroCombatStats(b).power - getHeroCombatStats(a).power);
+                rosterEl.innerHTML = ownedIds.map(hId => {
+                    const hero = HERO_POOL.find(h => h.id === hId);
+                    const inParty = gameState.party.includes(hId);
+                    const stats = getHeroCombatStats(hId);
+                    return `
+                        <div onclick="togglePartyMember('${hId}')" class="cursor-pointer rounded-xl p-1.5 border text-center transition ${
+                            inParty ? 'bg-indigo-950/70 border-indigo-400' : 'bg-slate-950 border-slate-800 hover:border-slate-600'
+                        }">
+                            <div class="w-10 h-10 mx-auto rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center mb-1">
+                                ${renderHeroVisual(hero, 'w-full h-full object-cover object-top', 'text-xl')}
+                            </div>
+                            <div class="text-[10px] font-bold text-white truncate">${hero.name}</div>
+                            <div class="text-[9px] text-amber-300">Lv.${stats.level} +${stats.breakthrough}</div>
+                        </div>
+                    `;
+                }).join('');
             }
         }
 
-        function executePlayerAction(actionType) {
-            if (!battleState || battleState.finished) return;
-            const unit = battleState.units[battleState.activeUnitIdx];
-            if (!unit || unit.hp <= 0) return;
-
-            const isUlt = actionType === 'ULT' && unit.energy >= 100;
-            const hasAdv = ELEMENT_ADVANTAGE[unit.hero.element] === battleState.stage.element;
-            const elemMult = hasAdv ? 1.3 : 1.0;
-            const crit = Math.random() < 0.25;
-            const critMult = crit ? 1.5 : 1.0;
-
-            const unitCard = document.getElementById(`battle-unit-card-${battleState.activeUnitIdx}`);
-            if (unitCard) {
-                unitCard.classList.remove('animate-lunge');
-                void unitCard.offsetWidth;
-                unitCard.classList.add('animate-lunge');
+        function startBattle() {
+            if (gameState.party.length === 0) {
+                showToast('출격할 영웅을 1명 이상 편성해 주세요!', 'error');
+                return;
             }
+            const stage = STAGES.find(s => s.id === gameState.selectedStageId) || STAGES[0];
+            battleState = {
+                active: true,
+                auto: battleState.auto,
+                stage,
+                bossHp: stage.hp,
+                bossMaxHp: stage.hp,
+                turnCount: 1,
+                units: gameState.party.map(hId => {
+                    const hero = HERO_POOL.find(h => h.id === hId);
+                    const stats = getHeroCombatStats(hId);
+                    return {
+                        hero,
+                        atk: stats.atk,
+                        hp: stats.maxHp,
+                        maxHp: stats.maxHp,
+                        ult: 0,
+                        acted: false,
+                        isHealer: hero.id === 'lim_1' || hero.id === 'std_3' || hero.id === 'r_4'
+                    };
+                }),
+                activeUnitIdx: 0,
+                busy: false
+            };
 
-            if (isUlt) {
-                unit.energy = 0;
-                SoundEngine.reveal('SSR');
+            SoundEngine.playPullStart();
+            const arena = document.getElementById('battle-arena-panel');
+            arena.classList.remove('hidden');
+            document.getElementById('battle-log-box').innerHTML = `<div class="text-amber-300 font-bold">⚔️ [${stage.name}] 토벌 개시! 보스 약점 속성: ${stage.weakTo}</div>`;
+            renderBattleArena();
+            arena.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            if (battleState.auto) {
+                setTimeout(runAutoBattleStep, 600);
+            }
+        }
+
+        function forfeitBattle() {
+            battleState.active = false;
+            document.getElementById('battle-arena-panel').classList.add('hidden');
+            showToast('전투에서 후퇴했습니다.', 'info');
+        }
+
+        function toggleAutoBattle() {
+            battleState.auto = !battleState.auto;
+            const btn = document.getElementById('auto-battle-btn');
+            btn.textContent = `자동전투: ${battleState.auto ? 'ON' : 'OFF'}`;
+            btn.className = battleState.auto
+                ? 'px-2.5 py-1 rounded-lg bg-emerald-600 border border-emerald-400 text-[11px] font-black text-white transition'
+                : 'px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-600 text-[11px] font-bold text-slate-300 hover:text-white transition';
+
+            if (battleState.active && battleState.auto && !battleState.busy) {
+                runAutoBattleStep();
+            }
+        }
+
+        function appendBattleLog(html) {
+            const box = document.getElementById('battle-log-box');
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function renderBattleArena() {
+            if (!battleState.active) return;
+            const { stage, bossHp, bossMaxHp, units, activeUnitIdx } = battleState;
+
+            document.getElementById('boss-avatar-box').textContent = stage.icon;
+            document.getElementById('boss-stage-name').textContent = `STAGE ${stage.id} · 약점: ${stage.weakTo}`;
+            document.getElementById('boss-name').textContent = stage.bossName;
+            document.getElementById('boss-hp-text').textContent = `${Math.max(0, bossHp).toLocaleString()} / ${bossMaxHp.toLocaleString()}`;
+            document.getElementById('boss-hp-bar').style.width = `${Math.max(0, (bossHp / bossMaxHp) * 100)}%`;
+
+            const partyContainer = document.getElementById('battle-party-cards');
+            partyContainer.innerHTML = units.map((u, idx) => {
+                const alive = u.hp > 0;
+                const isTurn = alive && idx === activeUnitIdx && !u.acted;
+                return `
+                    <div id="battle-unit-${idx}" onclick="selectActiveUnit(${idx})" class="cursor-pointer rounded-2xl p-3 border-2 transition ${
+                        !alive
+                            ? 'bg-slate-950/70 border-slate-800 opacity-40 grayscale'
+                            : (isTurn
+                                ? 'bg-indigo-950/80 border-cyan-400 shadow-lg shadow-cyan-500/20'
+                                : (u.acted ? 'bg-slate-900/70 border-slate-800 opacity-75' : 'bg-slate-900 border-slate-700 hover:border-indigo-400'))
+                    }">
+                        <div class="flex items-center justify-between text-[10px] font-bold mb-1">
+                            <span class="text-slate-300">${u.hero.element}</span>
+                            <span class="${u.ult >= 100 ? 'text-amber-300 animate-pulse font-black' : 'text-cyan-300'}">ULT ${u.ult}%</span>
+                        </div>
+                        <div class="w-14 h-16 mx-auto rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center mb-1.5">
+                            ${renderHeroVisual(u.hero, 'w-full h-full object-cover object-top', 'text-3xl')}
+                        </div>
+                        <div class="text-xs font-extrabold text-white text-center truncate">${u.hero.name}</div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mt-1.5">
+                            <div class="h-full bg-emerald-400 transition-all" style="width: ${Math.max(0, (u.hp / u.maxHp) * 100)}%;"></div>
+                        </div>
+                        <div class="text-[10px] text-center text-slate-300 mt-0.5 tabular-nums">${Math.max(0, u.hp).toLocaleString()} / ${u.maxHp.toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const activeUnit = units[activeUnitIdx];
+            const basicBtn = document.getElementById('btn-basic-skill');
+            const ultBtn = document.getElementById('btn-ult-skill');
+            if (activeUnit && activeUnit.hp > 0 && !activeUnit.acted && !battleState.busy) {
+                document.getElementById('active-turn-label').innerHTML = `<i class="fa-solid fa-play mr-1"></i>현재 행동: <span class="text-amber-300">${activeUnit.hero.name}</span>`;
+                basicBtn.disabled = false;
+                ultBtn.disabled = activeUnit.ult < 100;
+                document.getElementById('ult-skill-desc').textContent = activeUnit.isHealer ? '아군 전체 대량 회복 + 공격' : '초강력 성좌 필살기 (2.6배 피해)';
+            } else {
+                basicBtn.disabled = true;
+                ultBtn.disabled = true;
+            }
+        }
+
+        function selectActiveUnit(idx) {
+            if (!battleState.active || battleState.busy) return;
+            const u = battleState.units[idx];
+            if (u && u.hp > 0 && !u.acted) {
+                battleState.activeUnitIdx = idx;
+                renderBattleArena();
+            }
+        }
+
+        function executePlayerAction(type) {
+            if (!battleState.active || battleState.busy) return;
+            const unit = battleState.units[battleState.activeUnitIdx];
+            if (!unit || unit.hp <= 0 || unit.acted) return;
+            if (type === 'ULT' && unit.ult < 100) return;
+
+            battleState.busy = true;
+            const unitCard = document.getElementById(`battle-unit-${battleState.activeUnitIdx}`);
+            const bossBox = document.getElementById('boss-avatar-box');
+            if (unitCard) unitCard.classList.add('animate-lunge');
+
+            const isWeak = ELEMENT_ADVANTAGE[unit.hero.element] === battleState.stage.element || unit.hero.element === battleState.stage.weakTo;
+            const weakMult = isWeak ? 1.35 : 1.0;
+
+            if (type === 'BASIC') {
+                const dmg = Math.round(unit.atk * (0.95 + Math.random() * 0.15) * weakMult);
+                battleState.bossHp -= dmg;
+                unit.ult = Math.min(100, unit.ult + 35);
+                SoundEngine.playHit();
+                if (bossBox) {
+                    bossBox.classList.remove('animate-hit');
+                    void bossBox.offsetWidth;
+                    bossBox.classList.add('animate-hit');
+                }
+                appendBattleLog(`<span class="text-cyan-300">[${unit.hero.name}]</span> 기본 공격! 보스에게 <strong class="text-white">${dmg.toLocaleString()}</strong> 피해${isWeak ? ' <span class="text-amber-300">(약점 1.35x!)</span>' : ''}`);
+            } else {
+                unit.ult = 0;
                 if (unit.isHealer) {
                     const healAmt = Math.round(unit.atk * 1.4);
                     battleState.units.forEach(ally => {
                         if (ally.hp > 0) ally.hp = Math.min(ally.maxHp, ally.hp + healAmt);
                     });
-                    const dmg = Math.round(unit.atk * 1.5 * elemMult * critMult);
+                    const dmg = Math.round(unit.atk * 1.3 * weakMult);
                     battleState.bossHp -= dmg;
-                    appendBattleLog(`<span class="text-emerald-300 font-bold">✨ [${unit.hero.name}] 성좌의 축복! 아군 전체 HP +${healAmt} 회복 및 보스에게 ${dmg.toLocaleString()} 피해!</span>`);
+                    SoundEngine.playHeal();
+                    appendBattleLog(`<span class="text-amber-300 font-bold">[${unit.hero.name}] 성좌의 축복!</span> 아군 전체 체력 <strong>+${healAmt.toLocaleString()}</strong> 회복 및 보스에게 <strong>${dmg.toLocaleString()}</strong> 피해!`);
                 } else {
-                    const dmg = Math.round(unit.atk * 2.65 * elemMult * critMult);
+                    const dmg = Math.round(unit.atk * 2.6 * weakMult);
                     battleState.bossHp -= dmg;
-                    appendBattleLog(`<span class="text-amber-300 font-bold">🔥 [${unit.hero.name}] 필살기 발동! ${hasAdv ? '[속성우위] ' : ''}${crit ? '치명타! ' : ''}${dmg.toLocaleString()} 폭발 피해!</span>`);
+                    SoundEngine.playSsrReveal();
+                    if (bossBox) {
+                        bossBox.classList.remove('animate-hit');
+                        void bossBox.offsetWidth;
+                        bossBox.classList.add('animate-hit');
+                    }
+                    appendBattleLog(`<span class="text-amber-300 font-bold">[${unit.hero.name}] 필살기 발동!</span> 보스에게 <strong class="text-rose-400">${dmg.toLocaleString()}</strong> 치명적 피해${isWeak ? ' (약점!)' : ''}`);
                 }
-            } else {
-                unit.energy = Math.min(100, unit.energy + 35);
-                SoundEngine.click();
-                const dmg = Math.round(unit.atk * (0.95 + Math.random() * 0.2) * elemMult * critMult);
-                battleState.bossHp -= dmg;
-                appendBattleLog(`<span class="text-sky-200">⚔️ [${unit.hero.name}]의 공격! ${hasAdv ? '[약점] ' : ''}${dmg.toLocaleString()} 피해 (게이지 +35%)</span>`);
             }
 
-            const bossBox = document.getElementById('boss-avatar-box');
-            if (bossBox) {
-                bossBox.classList.remove('animate-hit');
-                void bossBox.offsetWidth;
-                bossBox.classList.add('animate-hit');
-            }
+            unit.acted = true;
+            renderBattleArena();
 
             // 보스 처치 확인
             if (battleState.bossHp <= 0) {
-                battleState.bossHp = 0;
-                battleState.finished = true;
-                renderBattleArena();
-                handleBattleVictory();
+                setTimeout(handleBattleVictory, 450);
                 return;
             }
 
-            // 다음 살아있는 아군으로 턴 넘김, 모두 행동했으면 보스 턴 실행
-            let nextIdx = battleState.activeUnitIdx + 1;
-            while (nextIdx < battleState.units.length && battleState.units[nextIdx].hp <= 0) {
-                nextIdx++;
-            }
-
-            if (nextIdx < battleState.units.length) {
+            // 다음 행동 가능한 아군 찾기
+            const nextIdx = battleState.units.findIndex(u => u.hp > 0 && !u.acted);
+            if (nextIdx >= 0) {
                 battleState.activeUnitIdx = nextIdx;
+                battleState.busy = false;
                 renderBattleArena();
-                if (autoBattle) scheduleAutoTurn();
+                if (battleState.auto) setTimeout(runAutoBattleStep, 450);
             } else {
-                renderBattleArena();
-                setTimeout(executeBossTurn, 500);
+                // 보스 턴 진행
+                setTimeout(executeBossTurn, 550);
             }
         }
 
         function executeBossTurn() {
-            if (!battleState || battleState.finished) return;
-            const aliveUnits = battleState.units.filter(u => u.hp > 0);
-            if (aliveUnits.length === 0) return;
-
-            const isAoe = battleState.turnCount % 3 === 0;
-            if (isAoe) {
-                const aoeDmg = Math.round(battleState.bossAtk * 0.65);
-                aliveUnits.forEach(u => {
-                    u.hp = Math.max(0, u.hp - aoeDmg);
-                });
-                appendBattleLog(`<span class="text-rose-400 font-bold">💥 [${battleState.stage.bossName}] 광역 파동! 아군 전체에게 각각 ${aoeDmg.toLocaleString()} 피해!</span>`);
-            } else {
-                const target = aliveUnits[Math.floor(Math.random() * aliveUnits.length)];
-                const singleDmg = Math.round(battleState.bossAtk * (0.9 + Math.random() * 0.25));
-                target.hp = Math.max(0, target.hp - singleDmg);
-                appendBattleLog(`<span class="text-rose-300">👹 [${battleState.stage.bossName}]의 강타! [${target.hero.name}]에게 ${singleDmg.toLocaleString()} 피해!</span>`);
-            }
-
-            const stillAliveIdx = battleState.units.findIndex(u => u.hp > 0);
-            if (stillAliveIdx === -1) {
-                battleState.finished = true;
-                renderBattleArena();
-                appendBattleLog(`<span class="text-rose-500 font-black">💀 파티가 전멸했습니다... 영웅을 더 소환하거나 파티를 재정비하세요!</span>`);
-                showToast('토벌에 실패했습니다. 파티를 정비해 다시 도전하세요!', 'error');
+            if (!battleState.active) return;
+            const { stage, units, turnCount } = battleState;
+            const aliveUnits = units.filter(u => u.hp > 0);
+            if (aliveUnits.length === 0) {
+                handleBattleDefeat();
                 return;
             }
 
+            const isAoe = turnCount % 3 === 0;
+            SoundEngine.playHit();
+
+            if (isAoe) {
+                const aoeDmg = Math.round(stage.atk * 0.72);
+                aliveUnits.forEach(u => {
+                    u.hp -= aoeDmg;
+                    u.ult = Math.min(100, u.ult + 15);
+                });
+                appendBattleLog(`<span class="text-rose-400 font-bold">[BOSS ${stage.bossName}]</span> 광역 파동 시전! 아군 전체에게 <strong>${aoeDmg.toLocaleString()}</strong> 피해!`);
+            } else {
+                const target = aliveUnits[Math.floor(Math.random() * aliveUnits.length)];
+                const singleDmg = Math.round(stage.atk * (0.9 + Math.random() * 0.2));
+                target.hp -= singleDmg;
+                target.ult = Math.min(100, target.ult + 20);
+                appendBattleLog(`<span class="text-rose-400">[BOSS ${stage.bossName}]</span> 맹공! <span class="text-white">${target.hero.name}</span>에게 <strong>${singleDmg.toLocaleString()}</strong> 피해!`);
+            }
+
+            const remaining = units.filter(u => u.hp > 0);
+            if (remaining.length === 0) {
+                renderBattleArena();
+                setTimeout(handleBattleDefeat, 450);
+                return;
+            }
+
+            // 다음 라운드 초기화
             battleState.turnCount += 1;
-            battleState.activeUnitIdx = stillAliveIdx;
+            units.forEach(u => { u.acted = false; });
+            battleState.activeUnitIdx = units.findIndex(u => u.hp > 0);
+            battleState.busy = false;
             renderBattleArena();
-            if (autoBattle) scheduleAutoTurn();
+
+            if (battleState.auto) {
+                setTimeout(runAutoBattleStep, 450);
+            }
+        }
+
+        function runAutoBattleStep() {
+            if (!battleState.active || !battleState.auto || battleState.busy) return;
+            const unit = battleState.units[battleState.activeUnitIdx];
+            if (!unit || unit.hp <= 0 || unit.acted) return;
+            executePlayerAction(unit.ult >= 100 ? 'ULT' : 'BASIC');
         }
 
         function handleBattleVictory() {
             const st = battleState.stage;
+            battleState.active = false;
+            battleState.busy = false;
+
             gameState.gems += st.rewardGems;
             gameState.tickets += st.rewardTickets;
-            gameState.battleClears = (gameState.battleClears || 0) + 1;
+            gameState.expPotions += st.rewardExp;
+            gameState.battleClears += 1;
+
+            SoundEngine.playSsrReveal();
             saveGameState();
             updateUI();
+            renderBattleSetup();
 
-            const clearBadge = document.getElementById('battle-clear-badge');
-            if (clearBadge) clearBadge.textContent = `클리어 ${gameState.battleClears}회`;
-
-            SoundEngine.reveal('SSR');
-            appendBattleLog(`<span class="text-amber-300 font-black">🏆 토벌 성공! 보상 획득: 성정석 +${st.rewardGems}개, 소환 티켓 +${st.rewardTickets}장!</span>`);
-            showToast(`토벌 승리! 성정석 ${st.rewardGems}개 & 티켓 ${st.rewardTickets}장 획득!`, 'success');
+            appendBattleLog(`<span class="text-emerald-400 font-black">🎉 토벌 성공! 보상 획득: 성정석 +${st.rewardGems}, 티켓 +${st.rewardTickets}, 별의 정수 +${st.rewardExp}</span>`);
+            showToast(`토벌 승리! 성정석 +${st.rewardGems}, 티켓 +${st.rewardTickets}, 별의 정수 +${st.rewardExp} 획득!`, 'success');
         }
 
-        function forfeitBattle() {
-            SoundEngine.click();
-            battleState = null;
-            if (autoBattleTimer) clearTimeout(autoBattleTimer);
-            document.getElementById('battle-arena-panel').classList.add('hidden');
-        }
-
-        function toggleAutoBattle() {
-            SoundEngine.click();
-            autoBattle = !autoBattle;
-            const btn = document.getElementById('auto-battle-btn');
-            if (btn) {
-                btn.textContent = autoBattle ? '자동전투: ON' : '자동전투: OFF';
-                btn.className = autoBattle
-                    ? 'px-2.5 py-1 rounded-lg bg-emerald-600 border border-emerald-400 text-[11px] font-bold text-white transition'
-                    : 'px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-600 text-[11px] font-bold text-slate-300 hover:text-white transition';
-            }
-            if (autoBattle && battleState && !battleState.finished) {
-                scheduleAutoTurn();
-            }
-        }
-
-        function scheduleAutoTurn() {
-            if (autoBattleTimer) clearTimeout(autoBattleTimer);
-            autoBattleTimer = setTimeout(() => {
-                if (!autoBattle || !battleState || battleState.finished) return;
-                const unit = battleState.units[battleState.activeUnitIdx];
-                if (!unit) return;
-                executePlayerAction(unit.energy >= 100 ? 'ULT' : 'BASIC');
-            }, 450);
+        function handleBattleDefeat() {
+            battleState.active = false;
+            battleState.busy = false;
+            appendBattleLog(`<span class="text-rose-500 font-black">💀 파티가 전멸했습니다... 영웅 레벨업이나 무기 장착 후 다시 도전하세요!</span>`);
+            showToast('파티가 패배했습니다. 영웅을 강화한 뒤 재도전해 보세요!', 'error');
         }
 
         /**
-         * 11. 토스트 알림 유틸리티
+         * 12. 초기 구동 (window.onload)
          */
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-
-            const colors = {
-                success: 'bg-emerald-950/95 border-emerald-400 text-emerald-100',
-                error: 'bg-rose-950/95 border-rose-400 text-rose-100',
-                info: 'bg-slate-900/95 border-indigo-400 text-indigo-100'
-            };
-            const icons = {
-                success: 'fa-circle-check text-emerald-400',
-                error: 'fa-circle-exclamation text-rose-400',
-                info: 'fa-circle-info text-indigo-400'
-            };
-
-            const toast = document.createElement('div');
-            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl text-xs font-bold flex items-center gap-2.5 transition-all duration-300 ${colors[type] || colors.info}`;
-            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
-
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(8px)';
-                setTimeout(() => toast.remove(), 300);
-            }, 2800);
-        }
-
-        /**
-         * 12. 초기 구동
-         */
-        window.addEventListener('DOMContentLoaded', () => {
+        window.onload = function() {
             loadGameState();
-            updateSoundIcon();
+            const activeBanner = BANNERS[gameState.activeBannerId];
+            if (activeBanner) {
+                currentBannerCategory = activeBanner.category;
+                switchBannerCategory(currentBannerCategory);
+            }
+            updateSoundButton();
             updateUI();
-        });
+            renderCodex();
+            renderBattleSetup();
+        };
     </script>
 </body>
 </html>
